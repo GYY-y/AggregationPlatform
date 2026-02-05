@@ -60,6 +60,13 @@ textarea {
   background: var(--accent);
 }
 
+.brand__logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  display: block;
+}
+
 .brand__title {
   font-size: 18px;
   font-weight: 600;

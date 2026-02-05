@@ -8,6 +8,7 @@ import LinkGrid from './components/LinkGrid.vue'
 import LinkFormModal from './components/LinkFormModal.vue'
 import MenuFormModal from './components/MenuFormModal.vue'
 import SettingsDrawer from './components/SettingsDrawer.vue'
+import brandLogo from './assets/images/altr.png'
 
 const storageKey = 'aggregation-platform-state'
 
@@ -552,7 +553,7 @@ function applyThemeVars(vars = {}) {
   <div class="app-shell" :style="themeVars">
       <aside class="sidebar">
         <div class="brand">
-          <div class="brand__dot" />
+          <img class="brand__logo" :src="brandLogo" alt="Altr Logo" />
           <div>
             <p class="brand__title">聚合工作台</p>
             <p class="brand__subtitle">链接一处，直达所需</p>
