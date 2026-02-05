@@ -38,7 +38,7 @@ const denseClass = computed(() => (props.dense ? 'card--dense' : ''))
       <div class="card__meta">{{ link.url }}</div>
       <div class="card__footer">
         <a-space class="foot-actions" size="small">
-          <a-button type="link" @click="emit('open', link.url)">打开</a-button>
+          <span style="color: #1677ff; cursor: pointer;margin-right: 6px;" @click="emit('open', link.url)">打开</span>
           <a-button type="link" @click="emit('edit', link)">编辑</a-button>
           <a-popconfirm title="确认删除此链接？" ok-text="删除" cancel-text="取消" @confirm="emit('delete', link.id)">
             <a-button type="link" danger>删除</a-button>
