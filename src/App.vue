@@ -1,8 +1,13 @@
 <script setup>
 import { computed, h, onMounted, reactive, ref, watch } from 'vue'
-import { App as AntApp, Button, Card, Checkbox, Drawer, Input, Modal, Popconfirm, Select, Slider, Space, Switch, Tag, Tooltip } from 'ant-design-vue'
-import { PlusOutlined, EditOutlined, DeleteOutlined, PushpinFilled, UploadOutlined, DownloadOutlined, SettingOutlined } from '@ant-design/icons-vue'
+import { App as AntApp, Button, Input, Space, Switch, Tag } from 'ant-design-vue'
+import { PlusOutlined, EditOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons-vue'
 import { useTheme } from './composables/useTheme'
+import MenuList from './components/MenuList.vue'
+import LinkGrid from './components/LinkGrid.vue'
+import LinkFormModal from './components/LinkFormModal.vue'
+import MenuFormModal from './components/MenuFormModal.vue'
+import SettingsDrawer from './components/SettingsDrawer.vue'
 
 const storageKey = 'aggregation-platform-state'
 
@@ -95,8 +100,6 @@ const draggingMenuId = ref(null)
 const draggingLinkId = ref(null)
 const importInput = ref(null)
 const settingDrawerOpen = ref(false)
-const linkFormRef = ref(null)
-const menuFormRef = ref(null)
 const formLayout = {
   labelCol: { span: 7 },
   wrapperCol: { span: 17 },
@@ -165,6 +168,14 @@ const availableTags = computed(() => {
   const tagSet = new Set()
   state.links.forEach((l) => l.tags.forEach((t) => tagSet.add(t)))
   return Array.from(tagSet)
+})
+
+const menuLinkCount = computed(() => {
+  const map = {}
+  state.links.forEach((l) => {
+    map[l.menuId] = (map[l.menuId] || 0) + 1
+  })
+  return map
 })
 
 const tagPalette = [
@@ -367,24 +378,6 @@ function deleteMenu(id) {
   }
 }
 
-async function handleLinkOk() {
-  try {
-    await linkFormRef.value?.validate()
-    submitLink()
-  } catch (err) {
-    messageApi?.error?.('请完善必填项')
-  }
-}
-
-async function handleMenuOk() {
-  try {
-    await menuFormRef.value?.validate()
-    submitMenu()
-  } catch (err) {
-    messageApi?.error?.('请检查菜单名称')
-  }
-}
-
 function startMenuDrag(id) {
   if (!canDrag.value) return
   draggingMenuId.value = id
@@ -569,37 +562,22 @@ function applyThemeVars(vars = {}) {
           <Button block type="primary" size="large" @click="openNewMenu">新增菜单</Button>
         </div>
         <input ref="importInput" type="file" accept="application/json" class="hidden" @change="handleImport" />
-        <div class="menu-list">
-          <Card
-            v-for="menu in state.menus"
-            :key="menu.id"
-            size="small"
-            class="menu-item"
-            :bordered="menu.id === state.activeMenuId"
-            :class="{ active: menu.id === state.activeMenuId }"
-            :bodyStyle="{ padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }"
-            @click="state.activeMenuId = menu.id"
-            :draggable="canDrag"
-            @dragstart="startMenuDrag(menu.id)"
-            @dragend="draggingMenuId = null"
-            @dragover.prevent
-            @drop.prevent="dropMenu(menu.id)"
-            :style="{ borderColor: menu.id === state.activeMenuId ? state.settings.accent : 'var(--line)' }"
-          >
-            <div class="menu-text">
-              <span>{{ menu.name }}</span>
-              <Tag v-if="state.settings.showMenuCount">{{ state.links.filter((l) => l.menuId === menu.id).length }}</Tag>
-            </div>
-            <Space class="menu-actions" @click.stop>
-              <Tooltip title="编辑">
-                <Button type="text" size="small" @click="openEditMenu(menu)" :icon="h(EditOutlined)" />
-              </Tooltip>
-              <Popconfirm title="确认删除此菜单？" ok-text="删除" cancel-text="取消" @confirm="deleteMenu(menu.id)">
-                <Button type="text" danger size="small" :icon="h(DeleteOutlined)" />
-              </Popconfirm>
-            </Space>
-          </Card>
-        </div>
+        <MenuList
+          :menus="state.menus"
+          :active-menu-id="state.activeMenuId"
+          :show-menu-count="state.settings.showMenuCount"
+          :menu-link-count="menuLinkCount"
+          :can-drag="canDrag"
+          :accent="state.settings.accent"
+          :edit-icon="h(EditOutlined)"
+          :delete-icon="h(DeleteOutlined)"
+          @select="state.activeMenuId = $event"
+          @edit="openEditMenu"
+          @delete="deleteMenu"
+          @drag-start="startMenuDrag"
+          @drag-end="draggingMenuId = null"
+          @drop="dropMenu"
+        />
       </aside>
 
       <main class="content">
@@ -633,154 +611,56 @@ function applyThemeVars(vars = {}) {
           </div>
         </div>
 
-        <div
-          class="card-grid"
+        <LinkGrid
+          :links="filteredLinks"
+          :can-drag="canDrag"
+          :dense="state.settings.dense"
+          :show-description="state.settings.showDescription"
           :style="{ gridTemplateColumns: `repeat(${state.settings.columns}, minmax(0, 1fr))` }"
-        >
-          <Card
-            v-for="link in filteredLinks"
-            :key="link.id"
-            class="card"
-            :class="denseClass"
-            :bordered="true"
-            :draggable="canDrag"
-            @dragstart="startLinkDrag(link.id)"
-            @dragend="draggingLinkId = null"
-            @dragover.prevent
-            @drop.prevent="dropLink(link.id)"
-          >
-            <template #title>
-              <p class="card__title" style="cursor: pointer" @click.stop="copyTitle(link.title)">{{ link.title }}</p>
-            </template>
-            <div class="card__tags">
-              <Tag v-for="tag in link.tags" :key="tag" :style="getTagStyle(tag)">{{ tag }}</Tag>
-            </div>
-            <p v-if="state.settings.showDescription" class="card__desc">{{ link.description }}</p>
-            <div class="card__meta">{{ link.url }}</div>
-            <div class="card__footer">
-              <span style="color: #1677ff; margin-right: 10px; cursor: pointer;" @click="openLink(link.url)">打开</span>
-              <Button type="link" @click="openEditLink(link)">编辑</Button>
-              <Popconfirm title="确认删除此链接？" ok-text="删除" cancel-text="取消" @confirm="deleteLink(link.id)">
-                <Button type="link" danger>删除</Button>
-              </Popconfirm>
-            </div>
-          </Card>
-
-        </div>
+          :get-tag-style="getTagStyle"
+          @open="openLink"
+          @edit="openEditLink"
+          @delete="deleteLink"
+          @drag-start="startLinkDrag"
+          @drag-end="draggingLinkId = null"
+          @drop="dropLink"
+          @copy-title="copyTitle"
+        />
       </main>
 
-      <Modal
+      <LinkFormModal
         v-model:open="linkModalOpen"
         :title="editingLinkId ? '编辑链接' : '新增链接'"
-        @ok="handleLinkOk"
-        @cancel="linkModalOpen = false"
-        ok-text="保存"
-        cancel-text="取消"
-      >
-        <a-form
-          ref="linkFormRef"
-          :model="linkForm"
-          :rules="linkRules"
-          layout="horizontal"
-          :label-col="formLayout.labelCol"
-          :wrapper-col="formLayout.wrapperCol"
-          :label-align="formLayout.labelAlign"
-        >
-          <a-form-item label="标题" name="title">
-            <a-input v-model:value="linkForm.title" placeholder="展示的名称" />
-          </a-form-item>
-          <a-form-item label="链接" name="url">
-            <a-input v-model:value="linkForm.url" placeholder="https://" />
-          </a-form-item>
-          <a-form-item label="描述" name="description">
-            <a-textarea
-              v-model:value="linkForm.description"
-              rows="2"
-              placeholder="一句话介绍用途"
-              :maxlength="100"
-              show-count
-            />
-          </a-form-item>
-          <a-form-item label="标签">
-            <a-input v-model:value="linkForm.tagsText" placeholder="项目, 协同" />
-          </a-form-item>
-          <a-form-item label="所属菜单" name="menuId">
-            <a-select v-model:value="linkForm.menuId">
-              <a-select-option v-for="menu in state.menus" :key="menu.id" :value="menu.id">{{ menu.name }}</a-select-option>
-            </a-select>
-          </a-form-item>
-        </a-form>
-      </Modal>
+        :link-form="linkForm"
+        :link-rules="linkRules"
+        :form-layout="formLayout"
+        :menus="state.menus"
+        @submit="submitLink"
+      />
 
-      <Modal
+      <MenuFormModal
         v-model:open="menuModalOpen"
         :title="editingMenuId ? '编辑菜单' : '新增菜单'"
-        @ok="handleMenuOk"
-        @cancel="menuModalOpen = false"
-        ok-text="保存"
-        cancel-text="取消"
-      >
-        <a-form
-          ref="menuFormRef"
-          :model="menuForm"
-          :rules="menuRules"
-          layout="horizontal"
-          :label-col="formLayout.labelCol"
-          :wrapper-col="formLayout.wrapperCol"
-          :label-align="formLayout.labelAlign"
-        >
-          <a-form-item label="名称" name="name" :required="true">
-            <a-input v-model:value="menuForm.name" placeholder="例如：数据分析" :maxlength="4" />
-          </a-form-item>
-        </a-form>
-      </Modal>
+        :menu-form="menuForm"
+        :menu-rules="menuRules"
+        :form-layout="formLayout"
+        @submit="submitMenu"
+      />
 
-      <Drawer
+      <SettingsDrawer
         v-model:open="settingDrawerOpen"
-        title="配置项"
-        placement="right"
-        :width="'40%'"
-        :closable="true"
-      >
-        <a-form
-          layout="horizontal"
-          class="drawer-form"
-          :label-col="formLayout.labelCol"
-          :wrapper-col="formLayout.wrapperCol"
-          :label-align="formLayout.labelAlign"
-        >
-          <a-form-item label="主题">
-            <a-select v-model:value="themeValue">
-              <a-select-option value="light">明亮</a-select-option>
-              <a-select-option value="dark">暗色</a-select-option>
-              <a-select-option value="system">跟随系统</a-select-option>
-            </a-select>
-          </a-form-item>
-          <a-form-item label="列数">
-            <a-slider v-model:value="state.settings.columns" :min="2" :max="4" />
-          </a-form-item>
-          <a-form-item label="紧凑模式">
-            <a-checkbox v-model:checked="state.settings.dense" />
-          </a-form-item>
-          <a-form-item label="显示描述">
-            <a-checkbox v-model:checked="state.settings.showDescription" />
-          </a-form-item>
-          <a-form-item label="显示菜单数量">
-            <a-checkbox v-model:checked="state.settings.showMenuCount" />
-          </a-form-item>
-          <a-form-item label="配置">
-            <Space>
-              <Button size="large" :icon="h(DownloadOutlined)" @click="exportConfig">导出配置</Button>
-              <Button size="large" :icon="h(UploadOutlined)" @click="triggerImport">导入配置</Button>
-              <Button size="large" danger ghost @click="clearCache">清除缓存</Button>
-            </Space>
-          </a-form-item>
-        </a-form>
-      </Drawer>
+        :form-layout="formLayout"
+        :settings="state.settings"
+        :theme-value="themeValue"
+        @update:themeValue="themeValue = $event"
+        @export="exportConfig"
+        @import="triggerImport"
+        @clear="clearCache"
+      />
     </div>
 </template>
-<style scoped lang="scss">
+<!-- <style scoped lang="scss">
 :deep(.ant-card-body){
   padding: 0 24px;
 }
-</style>
+</style> -->
