@@ -8,7 +8,8 @@ import LinkGrid from './components/LinkGrid.vue'
 import LinkFormModal from './components/LinkFormModal.vue'
 import MenuFormModal from './components/MenuFormModal.vue'
 import SettingsDrawer from './components/SettingsDrawer.vue'
-import brandLogo from './assets/images/altr.png'
+import brandLogoLight from './assets/images/altr.svg'
+import brandLogoDark from './assets/images/white_altr.svg'
 
 const storageKey = 'aggregation-platform-state'
 
@@ -230,6 +231,8 @@ const themeVars = computed(() => {
     '--text': preset.text,
   }
 })
+
+const brandLogo = computed(() => (effectiveTheme.value === 'dark' ? brandLogoDark : brandLogoLight))
 
 watch(
   () => ({ menus: state.menus, links: state.links, settings: state.settings, activeMenuId: state.activeMenuId }),
