@@ -8,6 +8,7 @@ const props = defineProps({
   accent: { type: String, default: '' },
   editIcon: { type: Object, default: null },
   deleteIcon: { type: Object, default: null },
+  disableEditIds: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['select', 'edit', 'delete', 'drag-start', 'drag-end', 'drop'])
@@ -38,7 +39,7 @@ const getCount = (id) => props.menuLinkCount[id] || 0
           <span>{{ menu.name }}</span>
           <a-tag v-if="showMenuCount">{{ getCount(menu.id) }}</a-tag>
         </div>
-        <a-space class="menu-actions" @click.stop>
+        <a-space class="menu-actions" @click.stop v-if="!disableEditIds.includes(menu.id)">
           <a-tooltip title="编辑">
             <a-button type="text" size="small" @click="emit('edit', menu)" :icon="editIcon" />
           </a-tooltip>

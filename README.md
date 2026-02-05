@@ -9,6 +9,17 @@
 - 设置抽屉可切换主题、列数、紧凑模式、显示描述/菜单数量，并支持导入导出/清除缓存。
 - 本地缓存：状态、配置保存在浏览器 `localStorage`，支持一键恢复默认。
 
+## 解决的痛点
+- 常用链接散落在浏览器书签、聊天记录或文档里，难以快速找到：集中到单一面板，按菜单/标签分组，搜索即达。
+- 团队成员不熟悉链接路径：导出配置分享给同事，导入即可复用同一套入口。
+- 排序/分组调整频繁：开启拖拽后直接拖动菜单和链接即可调整顺序，随用随排。
+- 深夜/白天不同场景：支持主题切换与紧凑模式，适配暗光和多信息密度需求。
+
+## 预置友情链接
+- Skill 创作小说：预览 https://novelplatform-one.vercel.app/ ｜ GitHub https://github.com/GYY-y/novelPlatform
+- 春节小游戏：预览 https://minigame-delta-inky.vercel.app/ ｜ GitHub https://github.com/GYY-y/mini-game
+- 聚合工作台：预览 https://aggregation-platform.vercel.app/ ｜ GitHub https://github.com/GYY-y/AggregationPlatform
+
 ## 目录结构（关键部分）
 ```
 src/

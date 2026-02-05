@@ -17,6 +17,7 @@ const seedMenus = [
   { id: 'wk', name: '工作效率' },
   { id: 'dev', name: '开发工具' },
   { id: 'ref', name: '学习资料' },
+  { id: 'links', name: '友情链接' },
 ]
 
 const seedLinks = [
@@ -51,6 +52,54 @@ const seedLinks = [
     url: 'https://www.figma.com/',
     description: '设计规范与最新交互稿集合。',
     tags: ['设计', '规范'],
+  },
+  {
+    id: 'novel-preview',
+    menuId: 'links',
+    title: 'Skill 创作小说（预览）',
+    url: 'https://novelplatform-one.vercel.app/',
+    description: '创作小说平台的预览地址。',
+    tags: ['预览', '创作'],
+  },
+  {
+    id: 'novel-github',
+    menuId: 'links',
+    title: 'Skill 创作小说（GitHub）',
+    url: 'https://github.com/GYY-y/novelPlatform',
+    description: '创作小说平台的 GitHub 仓库。',
+    tags: ['GitHub', '创作'],
+  },
+  {
+    id: 'spring-preview',
+    menuId: 'links',
+    title: '春节小游戏（预览）',
+    url: 'https://minigame-delta-inky.vercel.app/',
+    description: '春节小游戏预览地址。',
+    tags: ['预览', '小游戏'],
+  },
+  {
+    id: 'spring-github',
+    menuId: 'links',
+    title: '春节小游戏（GitHub）',
+    url: 'https://github.com/GYY-y/mini-game',
+    description: '春节小游戏的 GitHub 仓库。',
+    tags: ['GitHub', '小游戏'],
+  },
+  {
+    id: 'agg-preview',
+    menuId: 'links',
+    title: '聚合工作台（预览）',
+    url: 'https://aggregation-platform.vercel.app/',
+    description: '当前平台的预览地址。',
+    tags: ['预览', '聚合'],
+  },
+  {
+    id: 'agg-github',
+    menuId: 'links',
+    title: '聚合工作台（GitHub）',
+    url: 'https://github.com/GYY-y/AggregationPlatform',
+    description: '当前平台的 GitHub 仓库。',
+    tags: ['GitHub', '聚合'],
   },
 ]
 
@@ -575,6 +624,7 @@ function applyThemeVars(vars = {}) {
           :accent="state.settings.accent"
           :edit-icon="h(EditOutlined)"
           :delete-icon="h(DeleteOutlined)"
+          :disable-edit-ids="['links']"
           @select="state.activeMenuId = $event"
           @edit="openEditMenu"
           @delete="deleteMenu"
