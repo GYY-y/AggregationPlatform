@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>聚合平台</title>
+    <script>
+      (function () {
+        const KEY = 'app-theme-mode'
+        const saved = localStorage.getItem(KEY)
+        const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        const mode = saved && saved !== 'system' ? saved : systemDark ? 'dark' : 'light'
+        document.documentElement.setAttribute('data-theme', mode)
+        document.documentElement.style.colorScheme = mode === 'dark' ? 'dark' : 'light'
+      })()
+    </script>
+    <script type="module" crossorigin src="/assets/index-c4td5UYP.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BzHbb4Pi.css">
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>
