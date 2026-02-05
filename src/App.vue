@@ -136,10 +136,10 @@ const themePresets = {
 }
 
 const state = reactive({
-  menus: [...seedMenus],
-  links: [...seedLinks],
+  menus: [],
+  links: [],
   settings: { ...seedSettings },
-  activeMenuId: 'wk',
+  activeMenuId: '',
   search: '',
 })
 
@@ -308,24 +308,7 @@ watch(
 )
 
 onMounted(() => {
-  try {
-    const cache = localStorage.getItem(storageKey)
-    if (cache) {
-      const parsed = JSON.parse(cache)
-      state.menus = parsed.menus?.length ? parsed.menus : seedMenus
-      state.links = parsed.links?.length ? parsed.links : seedLinks
-      state.settings = { ...seedSettings, ...(parsed.settings || {}) }
-      state.activeMenuId = parsed.activeMenuId || parsed.menus?.[0]?.id || seedMenus[0].id
-      if (parsed.settings?.theme) {
-        setTheme(['light', 'dark', 'system'].includes(parsed.settings.theme) ? parsed.settings.theme : 'system')
-      }
-    }
-  } catch (err) {
-    console.warn('读取缓存失败', err)
-  }
-  if (!state.activeMenuId && state.menus.length) {
-    state.activeMenuId = state.menus[0].id
-  }
+  loadInitialState()
 })
 
 function resetLinkForm(menuId = state.activeMenuId) {
@@ -537,13 +520,7 @@ function handleImport(event) {
 
 function clearCache() {
   localStorage.removeItem(storageKey)
-  state.menus = [...seedMenus]
-  state.links = [...seedLinks]
-  state.settings = { ...seedSettings }
-  state.activeMenuId = seedMenus[0].id
-  state.search = ''
-  setTheme(seedSettings.theme)
-  state.settings.accent = seedSettings.accent
+  applySeedData()
   setToast('已清除缓存并恢复默认')
 }
 
@@ -598,6 +575,39 @@ function applyThemeVars(vars = {}) {
   Object.entries(vars).forEach(([key, value]) => {
     root.style.setProperty(key, value)
   })
+}
+
+function applySeedData() {
+  state.menus = [...seedMenus]
+  state.links = [...seedLinks]
+  state.settings = { ...seedSettings }
+  state.activeMenuId = seedMenus[0].id
+  state.search = ''
+  setTheme(seedSettings.theme)
+  state.settings.accent = seedSettings.accent
+}
+
+function loadInitialState() {
+  try {
+    const cache = localStorage.getItem(storageKey)
+    if (cache) {
+      const parsed = JSON.parse(cache)
+      state.menus = parsed.menus?.length ? parsed.menus : [...seedMenus]
+      state.links = parsed.links?.length ? parsed.links : [...seedLinks]
+      state.settings = { ...seedSettings, ...(parsed.settings || {}) }
+      const validTheme = ['light', 'dark', 'system'].includes(state.settings.theme) ? state.settings.theme : 'system'
+      setTheme(validTheme)
+      state.activeMenuId =
+        parsed.activeMenuId ||
+        parsed.menus?.[0]?.id ||
+        (state.menus.length ? state.menus[0].id : seedMenus[0].id)
+    } else {
+      applySeedData()
+    }
+  } catch (err) {
+    console.warn('读取缓存失败', err)
+    applySeedData()
+  }
 }
 </script>
 
