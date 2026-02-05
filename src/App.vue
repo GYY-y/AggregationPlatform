@@ -587,6 +587,10 @@ function applyThemeVars(vars = {}) {
             <p class="muted">固定常用、分组管理、随时导入导出配置。</p>
           </div>
       <Space class="header__actions" wrap>
+        <Space size="middle">
+          <span class="muted">允许拖拽</span>
+          <Switch v-model:checked="state.settings.enableDrag" />
+        </Space>
         <Button type="primary" size="large" @click="openNewLink" :icon="h(PlusOutlined)">新增链接</Button>
         <Button size="large" @click="settingDrawerOpen = true" :icon="h(SettingOutlined)">配置项</Button>
       </Space>
@@ -600,10 +604,6 @@ function applyThemeVars(vars = {}) {
             style="width: 280px"
             placeholder="搜索标题、标签"
           />
-          <Space size="middle">
-            <span class="muted">允许拖拽</span>
-            <Switch v-model:checked="state.settings.enableDrag" />
-          </Space>
           <div class="tag-row">
             <span class="muted">标签:</span>
             <span v-if="!availableTags.length" class="muted">暂无</span>

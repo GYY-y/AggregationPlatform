@@ -57,6 +57,10 @@ const getCount = (id) => props.menuLinkCount[id] || 0
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
+  &:hover .menu-actions {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 
 .menu-text {
@@ -69,6 +73,11 @@ const getCount = (id) => props.menuLinkCount[id] || 0
   margin-left: auto;
   display: flex;
   gap: 4px;
+  align-items: center;
+  justify-content: flex-end;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
 }
 
 :deep(.ant-card-body){

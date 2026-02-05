@@ -52,6 +52,6 @@ const denseClass = computed(() => (props.dense ? 'card--dense' : ''))
 
 <style scoped lang="scss">
 :deep(.ant-card-body){
-  padding: 0 24px;
+  padding: 0 24px 10px 24px;
 }
 </style>
