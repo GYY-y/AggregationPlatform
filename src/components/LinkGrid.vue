@@ -12,6 +12,11 @@ const props = defineProps({
 const emit = defineEmits(['open', 'edit', 'delete', 'drag-start', 'drag-end', 'drop', 'copy-title'])
 
 const denseClass = computed(() => (props.dense ? 'card--dense' : ''))
+
+const getInitial = (title = '') => {
+  const trimmed = title.trim()
+  return trimmed ? trimmed[0] : '?'
+}
 </script>
 
 <template>
@@ -19,7 +24,7 @@ const denseClass = computed(() => (props.dense ? 'card--dense' : ''))
     <a-card
       v-for="link in links"
       :key="link.id"
-      class="card"
+      class="card card--list"
       :class="denseClass"
       :bordered="true"
       :draggable="canDrag"
@@ -28,23 +33,33 @@ const denseClass = computed(() => (props.dense ? 'card--dense' : ''))
       @dragover.prevent
       @drop.prevent="emit('drop', link.id)"
     >
-      <template #title>
-        <p class="card__title" style="cursor: pointer" @click.stop="emit('copy-title', link.title)">{{ link.title }}</p>
-      </template>
-      <div class="card__tags">
-        <a-tag v-for="tag in link.tags" :key="tag" :style="getTagStyle(tag)">{{ tag }}</a-tag>
-      </div>
-      <p v-if="showDescription" class="card__desc">{{ link.description }}</p>
-      <div class="card__meta">{{ link.url }}</div>
-      <div class="card__footer">
-        <a-space class="foot-actions" size="small">
-          <span style="color: #1677ff; cursor: pointer;margin-right: 6px;" @click="emit('open', link.url)">打开</span>
-          <a-button type="link" @click="emit('edit', link)">编辑</a-button>
-          <a-popconfirm title="确认删除此链接？" ok-text="删除" cancel-text="取消" @confirm="emit('delete', link.id)">
-            <a-button type="link" danger>删除</a-button>
-          </a-popconfirm>
-        </a-space>
-      </div>
+      <a-dropdown :trigger="['contextmenu']">
+        <div class="card__row">
+          <div class="card__avatar" @click.stop="emit('copy-title', link.title)">
+            {{ getInitial(link.title) }}
+          </div>
+          <div class="card__content" @click.stop="emit('open', link.url)">
+            <p class="card__title">{{ link.title }}</p>
+            <p v-if="showDescription" class="card__desc">{{ link.description }}</p>
+          </div>
+        </div>
+        <template #overlay>
+          <a-menu>
+            <a-menu-item @click="emit('open', link.url)">打开</a-menu-item>
+            <a-menu-item @click="emit('edit', link)">编辑</a-menu-item>
+            <a-menu-item class="menu-item--danger">
+              <a-popconfirm
+                title="确认删除此链接？"
+                ok-text="删除"
+                cancel-text="取消"
+                @confirm="emit('delete', link.id)"
+              >
+                <span>删除</span>
+              </a-popconfirm>
+            </a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
     </a-card>
   </div>
 </template>
@@ -52,6 +67,14 @@ const denseClass = computed(() => (props.dense ? 'card--dense' : ''))
 
 <style scoped lang="scss">
 :deep(.ant-card-body){
-  padding: 0 24px 10px 24px;
+  padding: 14px 18px;
+}
+
+:deep(.ant-dropdown-menu-item.menu-item--danger) {
+  color: #ff4d4f;
+}
+
+:deep(.ant-dropdown-menu-item.menu-item--danger:hover) {
+  color: #ff4d4f;
 }
 </style>

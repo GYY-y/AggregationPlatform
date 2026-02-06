@@ -6,6 +6,7 @@ const props = defineProps({
   menuLinkCount: { type: Object, default: () => ({}) },
   canDrag: { type: Boolean, default: false },
   accent: { type: String, default: '' },
+  iconMap: { type: Object, default: () => ({}) },
   editIcon: { type: Object, default: null },
   deleteIcon: { type: Object, default: null },
   disableEditIds: { type: Array, default: () => [] },
@@ -23,62 +24,89 @@ const getCount = (id) => props.menuLinkCount[id] || 0
       :key="menu.id"
       size="small"
       class="menu-item"
-      :bordered="menu.id === activeMenuId"
+      :bordered="false"
       :class="{ active: menu.id === activeMenuId }"
-      :body-style="{ padding: '10px 12px' }"
+      :body-style="{ padding: '12px 10px' }"
       @click="emit('select', menu.id)"
       :draggable="canDrag"
       @dragstart="emit('drag-start', menu.id)"
       @dragend="emit('drag-end')"
       @dragover.prevent
       @drop.prevent="emit('drop', menu.id)"
-      :style="{ borderColor: menu.id === activeMenuId ? accent : 'var(--line)' }"
     >
-      <div class="menu-row">
-        <div class="menu-text">
-          <span>{{ menu.name }}</span>
-          <a-tag v-if="showMenuCount">{{ getCount(menu.id) }}</a-tag>
+      <a-dropdown v-if="!disableEditIds.includes(menu.id)" :trigger="['contextmenu']">
+        <div class="menu-card">
+          <div class="menu-icon">
+            <component :is="iconMap[menu.icon] || iconMap.default" />
+          </div>
+          <div class="menu-title">{{ menu.name }}</div>
+          <a-tag v-if="showMenuCount" class="menu-count">{{ getCount(menu.id) }}</a-tag>
         </div>
-        <a-space class="menu-actions" @click.stop v-if="!disableEditIds.includes(menu.id)">
-          <a-tooltip title="编辑">
-            <a-button type="text" size="small" @click="emit('edit', menu)" :icon="editIcon" />
-          </a-tooltip>
-          <a-popconfirm title="确认删除此菜单？" ok-text="删除" cancel-text="取消" @confirm="emit('delete', menu.id)">
-            <a-button type="text" danger size="small" @click.stop :icon="deleteIcon" />
-          </a-popconfirm>
-        </a-space>
+        <template #overlay>
+          <a-menu>
+            <a-menu-item @click="emit('edit', menu)">编辑</a-menu-item>
+            <a-menu-item class="menu-item--danger">
+              <a-popconfirm title="确认删除此菜单？" ok-text="删除" cancel-text="取消" @confirm="emit('delete', menu.id)">
+                <span>删除</span>
+              </a-popconfirm>
+            </a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
+      <div v-else class="menu-card">
+        <div class="menu-icon">
+          <component :is="iconMap[menu.icon] || iconMap.default" />
+        </div>
+        <div class="menu-title">{{ menu.name }}</div>
+        <a-tag v-if="showMenuCount" class="menu-count">{{ getCount(menu.id) }}</a-tag>
       </div>
     </a-card>
   </div>
 </template>
 
 <style scoped lang="scss">
-.menu-row {
+.menu-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 0;
+  position: relative;
+  padding-bottom: 4px;
   &:hover .menu-actions {
     opacity: 1;
     visibility: visible;
   }
 }
 
-.menu-text {
+.menu-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  color: inherit;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  font-size: 16px;
 }
 
-.menu-actions {
-  margin-left: auto;
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  justify-content: flex-end;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease;
+.menu-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+  color: inherit;
+}
+
+.menu-count {
+  display: none;
+}
+
+:deep(.ant-dropdown-menu-item.menu-item--danger) {
+  color: #ff4d4f;
+}
+
+:deep(.ant-dropdown-menu-item.menu-item--danger:hover) {
+  color: #ff4d4f;
 }
 
 :deep(.ant-card-body){

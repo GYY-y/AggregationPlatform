@@ -1,7 +1,26 @@
 <script setup>
 import { computed, h, onMounted, reactive, ref, watch } from 'vue'
 import { App as AntApp, Button, Input, Space, Switch, Tag, Tour } from 'ant-design-vue'
-import { PlusOutlined, EditOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons-vue'
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  SettingOutlined,
+  AppstoreOutlined,
+  StarOutlined,
+  LinkOutlined,
+  ToolOutlined,
+  VideoCameraOutlined,
+  ShoppingOutlined,
+  BookOutlined,
+  CloudOutlined,
+  GlobalOutlined,
+  CompassOutlined,
+  PlayCircleOutlined,
+  PictureOutlined,
+  MessageOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons-vue'
 import { useTheme } from './composables/useTheme'
 import MenuList from './components/MenuList.vue'
 import LinkGrid from './components/LinkGrid.vue'
@@ -14,10 +33,10 @@ import brandLogoDark from './assets/images/white_altr.svg'
 const storageKey = 'aggregation-platform-state'
 
 const seedMenus = [
-  { id: 'wk', name: '工作效率' },
-  { id: 'dev', name: '开发工具' },
-  { id: 'ref', name: '学习资料' },
-  { id: 'links', name: '友情链接' },
+  { id: 'wk', name: '工作效率', icon: 'ThunderboltOutlined' },
+  { id: 'dev', name: '开发工具', icon: 'ToolOutlined' },
+  { id: 'ref', name: '学习资料', icon: 'BookOutlined' },
+  { id: 'links', name: '友情链接', icon: 'LinkOutlined' },
 ]
 
 const seedLinks = [
@@ -169,6 +188,41 @@ const linkRules = {
   menuId: [{ required: true, message: '请选择菜单' }],
   description: [{ max: 100, message: '描述最多 100 字' }],
 }
+const menuIconOptions = [
+  { value: 'AppstoreOutlined', label: '应用', icon: AppstoreOutlined },
+  { value: 'StarOutlined', label: '收藏', icon: StarOutlined },
+  { value: 'LinkOutlined', label: '链接', icon: LinkOutlined },
+  { value: 'ToolOutlined', label: '工具', icon: ToolOutlined },
+  { value: 'VideoCameraOutlined', label: '视频', icon: VideoCameraOutlined },
+  { value: 'ShoppingOutlined', label: '购物', icon: ShoppingOutlined },
+  { value: 'BookOutlined', label: '学习', icon: BookOutlined },
+  { value: 'CloudOutlined', label: '云盘', icon: CloudOutlined },
+  { value: 'GlobalOutlined', label: '资讯', icon: GlobalOutlined },
+  { value: 'CompassOutlined', label: '出行', icon: CompassOutlined },
+  { value: 'PlayCircleOutlined', label: '娱乐', icon: PlayCircleOutlined },
+  { value: 'PictureOutlined', label: '设计', icon: PictureOutlined },
+  { value: 'MessageOutlined', label: '社交', icon: MessageOutlined },
+  { value: 'ThunderboltOutlined', label: '效率', icon: ThunderboltOutlined },
+]
+
+const menuIconMap = {
+  AppstoreOutlined,
+  StarOutlined,
+  LinkOutlined,
+  ToolOutlined,
+  VideoCameraOutlined,
+  ShoppingOutlined,
+  BookOutlined,
+  CloudOutlined,
+  GlobalOutlined,
+  CompassOutlined,
+  PlayCircleOutlined,
+  PictureOutlined,
+  MessageOutlined,
+  ThunderboltOutlined,
+  default: AppstoreOutlined,
+}
+
 const menuRules = {
   name: [
     {
@@ -180,6 +234,13 @@ const menuRules = {
         return Promise.resolve()
       },
       message: '请输入菜单名称',
+      trigger: ['blur', 'change'],
+    },
+  ],
+  icon: [
+    {
+      required: true,
+      message: '请选择菜单图标',
       trigger: ['blur', 'change'],
     },
   ],
@@ -204,6 +265,7 @@ const linkForm = reactive({
 
 const menuForm = reactive({
   name: '',
+  icon: '',
 })
 
 const activeMenu = computed(() => state.menus.find((m) => m.id === state.activeMenuId))
@@ -360,6 +422,7 @@ function resetLinkForm(menuId = state.activeMenuId) {
 
 function resetMenuForm() {
   menuForm.name = ''
+  menuForm.icon = ''
 }
 
 function openNewLink() {
@@ -421,6 +484,7 @@ function openNewMenu() {
 function openEditMenu(menu) {
   editingMenuId.value = menu.id
   menuForm.name = menu.name
+  menuForm.icon = menu.icon || ''
   menuModalOpen.value = true
 }
 
@@ -428,6 +492,7 @@ function submitMenu() {
   const name = menuForm.name.trim()
   if (!name) return setToast('请输入菜单名称', 'error')
   if (name.length > 4) return setToast('名称最多 4 个字', 'error')
+  if (!menuForm.icon) return setToast('请选择菜单图标', 'error')
   const duplicate = state.menus.some(
     (menu) => menu.name === name && menu.id !== editingMenuId.value
   )
@@ -435,10 +500,13 @@ function submitMenu() {
 
   if (editingMenuId.value) {
     const target = state.menus.find((m) => m.id === editingMenuId.value)
-    if (target) target.name = name
+    if (target) {
+      target.name = name
+      target.icon = menuForm.icon
+    }
   } else {
     const id = createId()
-    state.menus.push({ id, name })
+    state.menus.push({ id, name, icon: menuForm.icon })
     state.menus = normalizeMenus(state.menus)
     state.activeMenuId = id
   }
@@ -585,7 +653,10 @@ function createId() {
 
 function normalizeMenus(list) {
   if (!Array.isArray(list)) return []
-  const next = [...list]
+  const next = list.map((item) => ({
+    ...item,
+    icon: item.icon || 'AppstoreOutlined',
+  }))
   const index = next.findIndex((item) => item.id === 'links')
   if (index === -1) return next
   const [linksMenu] = next.splice(index, 1)
@@ -696,16 +767,9 @@ function loadInitialState() {
 
 <template>
   <div class="app-shell" :style="themeVars">
-      <aside class="sidebar">
+      <aside class="sidebar sidebar--compact">
         <div class="brand">
           <img class="brand__logo" :src="brandLogo" alt="Altr Logo" />
-          <div>
-            <p class="brand__title">聚合工作台</p>
-            <p class="brand__subtitle">链接一处，直达所需</p>
-          </div>
-        </div>
-        <div class="sidebar__actions">
-          <Button ref="newMenuBtnRef" block type="primary" size="large" @click="openNewMenu">新增菜单</Button>
         </div>
         <input ref="importInput" type="file" accept="application/json" class="hidden" @change="handleImport" />
         <MenuList
@@ -715,6 +779,7 @@ function loadInitialState() {
           :menu-link-count="menuLinkCount"
           :can-drag="canDrag"
           :accent="state.settings.accent"
+          :icon-map="menuIconMap"
           :edit-icon="h(EditOutlined)"
           :delete-icon="h(DeleteOutlined)"
           :disable-edit-ids="['links']"
@@ -725,6 +790,17 @@ function loadInitialState() {
           @drag-end="draggingMenuId = null"
           @drop="dropMenu"
         />
+        <div class="sidebar__actions">
+          <Button
+            ref="newMenuBtnRef"
+            shape="circle"
+            class="menu-add-btn"
+            type="text"
+            size="large"
+            :icon="h(PlusOutlined)"
+            @click="openNewMenu"
+          />
+        </div>
       </aside>
 
       <main class="content">
@@ -800,6 +876,7 @@ function loadInitialState() {
         :menu-form="menuForm"
         :menu-rules="menuRules"
         :form-layout="formLayout"
+        :icon-options="menuIconOptions"
         @submit="submitMenu"
       />
 
