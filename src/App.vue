@@ -1,6 +1,6 @@
 <script setup>
 import { computed, h, onMounted, reactive, ref, watch } from 'vue'
-import { App as AntApp, Button, Input, Space, Switch, Tag } from 'ant-design-vue'
+import { App as AntApp, Button, Input, Space, Switch, Tag, Tour } from 'ant-design-vue'
 import { PlusOutlined, EditOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons-vue'
 import { useTheme } from './composables/useTheme'
 import MenuList from './components/MenuList.vue'
@@ -151,6 +151,11 @@ const draggingMenuId = ref(null)
 const draggingLinkId = ref(null)
 const importInput = ref(null)
 const settingDrawerOpen = ref(false)
+const newMenuBtnRef = ref(null)
+const newLinkBtnRef = ref(null)
+const settingBtnRef = ref(null)
+const dragSwitchRef = ref(null)
+const tourOpen = ref(false)
 const formLayout = {
   labelCol: { span: 7 },
   wrapperCol: { span: 17 },
@@ -282,6 +287,29 @@ const themeVars = computed(() => {
 })
 
 const brandLogo = computed(() => (effectiveTheme.value === 'dark' ? brandLogoDark : brandLogoLight))
+
+const tourSteps = computed(() => [
+  {
+    title: '新增菜单',
+    description: '先创建一个菜单，方便归类链接。',
+    target: () => newMenuBtnRef.value?.$el || newMenuBtnRef.value,
+  },
+  {
+    title: '开启拖拽',
+    description: '打开开关后，可以拖动菜单或卡片调整顺序。',
+    target: () => dragSwitchRef.value?.$el || dragSwitchRef.value,
+  },
+  {
+    title: '创建链接',
+    description: '点击这里快速新增一个链接卡片。',
+    target: () => newLinkBtnRef.value?.$el || newLinkBtnRef.value,
+  },
+  {
+    title: '配置项',
+    description: '调整列数、主题、导入导出等配置入口。',
+    target: () => settingBtnRef.value?.$el || settingBtnRef.value,
+  },
+])
 
 watch(
   () => ({ menus: state.menus, links: state.links, settings: state.settings, activeMenuId: state.activeMenuId }),
@@ -603,10 +631,12 @@ function loadInitialState() {
         (state.menus.length ? state.menus[0].id : seedMenus[0].id)
     } else {
       applySeedData()
+      tourOpen.value = true
     }
   } catch (err) {
     console.warn('读取缓存失败', err)
     applySeedData()
+    tourOpen.value = true
   }
 }
 </script>
@@ -622,7 +652,7 @@ function loadInitialState() {
           </div>
         </div>
         <div class="sidebar__actions">
-          <Button block type="primary" size="large" @click="openNewMenu">新增菜单</Button>
+          <Button ref="newMenuBtnRef" block type="primary" size="large" @click="openNewMenu">新增菜单</Button>
         </div>
         <input ref="importInput" type="file" accept="application/json" class="hidden" @change="handleImport" />
         <MenuList
@@ -653,10 +683,11 @@ function loadInitialState() {
       <Space class="header__actions" wrap>
         <Space size="middle">
           <span class="muted">允许拖拽</span>
-          <Switch v-model:checked="state.settings.enableDrag" />
+          <Switch ref="dragSwitchRef" v-model:checked="state.settings.enableDrag" />
         </Space>
-        <Button type="primary" size="large" @click="openNewLink" :icon="h(PlusOutlined)">新增链接</Button>
-        <Button size="large" @click="settingDrawerOpen = true" :icon="h(SettingOutlined)">配置项</Button>
+        <Button ref="newLinkBtnRef" type="primary" size="large" @click="openNewLink" :icon="h(PlusOutlined)">新增链接</Button>
+        <Button ref="settingBtnRef" size="large" @click="settingDrawerOpen = true" :icon="h(SettingOutlined)">配置项</Button>
+        <Button size="large" type="default" ghost @click="tourOpen = true">引导</Button>
       </Space>
         </header>
 
@@ -720,6 +751,13 @@ function loadInitialState() {
         @export="exportConfig"
         @import="triggerImport"
         @clear="clearCache"
+      />
+
+      <a-tour
+        :open="tourOpen"
+        :steps="tourSteps"
+        :locale="{ Next: '下一步', Previous: '上一步', Finish: '结束' }"
+        @close="tourOpen = false"
       />
     </div>
 </template>
