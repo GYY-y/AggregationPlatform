@@ -46,7 +46,7 @@ defineExpose({ validate: () => menuFormRef.value?.validate() })
       :wrapper-col="formLayout.wrapperCol"
       :label-align="formLayout.labelAlign"
     >
-      <a-form-item label="名称" name="name" :required="true">
+      <a-form-item label="菜单名称" name="name" :required="true">
         <a-input v-model:value="menuForm.name" placeholder="例如：数据分析" :maxlength="4" />
       </a-form-item>
     </a-form>

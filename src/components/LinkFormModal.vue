@@ -9,6 +9,7 @@ const props = defineProps({
   linkRules: { type: Object, default: () => ({}) },
   formLayout: { type: Object, default: () => ({}) },
   menus: { type: Array, default: () => [] },
+  tagOptions: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['update:open', 'submit'])
@@ -63,7 +64,12 @@ defineExpose({ validate: () => linkFormRef.value?.validate() })
         />
       </a-form-item>
       <a-form-item label="标签">
-        <a-input v-model:value="linkForm.tagsText" placeholder="项目, 协同" />
+        <a-select
+          v-model:value="linkForm.tags"
+          mode="multiple"
+          placeholder="选择标签"
+          :options="tagOptions.map((tag) => ({ label: tag, value: tag }))"
+        />
       </a-form-item>
       <a-form-item label="所属菜单" name="menuId">
         <a-select v-model:value="linkForm.menuId">

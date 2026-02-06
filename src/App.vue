@@ -27,7 +27,7 @@ const seedLinks = [
     title: 'Notion 团队空间',
     url: 'https://www.notion.so/',
     description: '团队知识库与任务协同的主页。',
-    tags: ['文档', '协同'],
+    tags: ['工具', '文档', '协作'],
   },
   {
     id: 'linear',
@@ -35,7 +35,7 @@ const seedLinks = [
     title: 'Linear 项目板',
     url: 'https://linear.app/',
     description: '项目进度、需求与缺陷的统一入口。',
-    tags: ['项目', '看板'],
+    tags: ['工具', '项目', '协作'],
   },
   {
     id: 'github',
@@ -43,7 +43,7 @@ const seedLinks = [
     title: 'GitHub',
     url: 'https://github.com/',
     description: '代码仓库与 PR 汇总。',
-    tags: ['代码', '版本控制'],
+    tags: ['开发', '代码', '资源'],
   },
   {
     id: 'figma',
@@ -51,7 +51,7 @@ const seedLinks = [
     title: 'Figma 设计稿',
     url: 'https://www.figma.com/',
     description: '设计规范与最新交互稿集合。',
-    tags: ['设计', '规范'],
+    tags: ['设计', '工具', '素材'],
   },
   {
     id: 'novel-preview',
@@ -59,7 +59,7 @@ const seedLinks = [
     title: 'Skill 创作小说（预览）',
     url: 'https://novelplatform-one.vercel.app/',
     description: '创作小说平台的预览地址。',
-    tags: ['预览', '创作'],
+    tags: ['预览', '娱乐', '内容'],
   },
   {
     id: 'novel-github',
@@ -67,7 +67,7 @@ const seedLinks = [
     title: 'Skill 创作小说（GitHub）',
     url: 'https://github.com/GYY-y/novelPlatform',
     description: '创作小说平台的 GitHub 仓库。',
-    tags: ['GitHub', '创作'],
+    tags: ['开发', 'GitHub', '资源'],
   },
   {
     id: 'spring-preview',
@@ -75,7 +75,7 @@ const seedLinks = [
     title: '春节小游戏（预览）',
     url: 'https://minigame-delta-inky.vercel.app/',
     description: '春节小游戏预览地址。',
-    tags: ['预览', '小游戏'],
+    tags: ['预览', '娱乐', '游戏'],
   },
   {
     id: 'spring-github',
@@ -83,7 +83,7 @@ const seedLinks = [
     title: '春节小游戏（GitHub）',
     url: 'https://github.com/GYY-y/mini-game',
     description: '春节小游戏的 GitHub 仓库。',
-    tags: ['GitHub', '小游戏'],
+    tags: ['开发', 'GitHub', '资源'],
   },
   {
     id: 'agg-preview',
@@ -91,7 +91,7 @@ const seedLinks = [
     title: '聚合工作台（预览）',
     url: 'https://aggregation-platform.vercel.app/',
     description: '当前平台的预览地址。',
-    tags: ['预览', '聚合'],
+    tags: ['预览', '工具', '资源'],
   },
   {
     id: 'agg-github',
@@ -99,9 +99,11 @@ const seedLinks = [
     title: '聚合工作台（GitHub）',
     url: 'https://github.com/GYY-y/AggregationPlatform',
     description: '当前平台的 GitHub 仓库。',
-    tags: ['GitHub', '聚合'],
+    tags: ['开发', 'GitHub', '资源'],
   },
 ]
+
+const seedTags = Array.from(new Set(seedLinks.flatMap((link) => link.tags)))
 
 const seedSettings = {
   columns: 3,
@@ -196,7 +198,7 @@ const linkForm = reactive({
   title: '',
   url: '',
   description: '',
-  tagsText: '',
+  tags: [],
   menuId: '',
 })
 
@@ -222,8 +224,17 @@ const filteredLinks = computed(() => {
 
 const availableTags = computed(() => {
   const tagSet = new Set()
-  state.links.forEach((l) => l.tags.forEach((t) => tagSet.add(t)))
+  const scopedLinks = state.activeMenuId
+    ? state.links.filter((l) => l.menuId === state.activeMenuId)
+    : state.links
+  scopedLinks.forEach((l) => l.tags.forEach((t) => tagSet.add(t)))
   return Array.from(tagSet)
+})
+
+const tagOptions = computed(() => {
+  const merged = new Set(seedTags)
+  availableTags.value.forEach((tag) => merged.add(tag))
+  return Array.from(merged)
 })
 
 const menuLinkCount = computed(() => {
@@ -343,7 +354,7 @@ function resetLinkForm(menuId = state.activeMenuId) {
   linkForm.title = ''
   linkForm.url = ''
   linkForm.description = ''
-  linkForm.tagsText = ''
+  linkForm.tags = []
   linkForm.menuId = menuId || state.menus[0]?.id || ''
 }
 
@@ -362,16 +373,13 @@ function openEditLink(link) {
   linkForm.title = link.title
   linkForm.url = link.url
   linkForm.description = link.description
-  linkForm.tagsText = link.tags.join(', ')
+  linkForm.tags = [...link.tags]
   linkForm.menuId = link.menuId
   linkModalOpen.value = true
 }
 
 function submitLink() {
-  const tags = linkForm.tagsText
-    .split(',')
-    .map((t) => t.trim())
-    .filter(Boolean)
+  const tags = Array.isArray(linkForm.tags) ? linkForm.tags.filter(Boolean) : []
 
   if (editingLinkId.value) {
     const target = state.links.find((l) => l.id === editingLinkId.value)
@@ -418,8 +426,12 @@ function openEditMenu(menu) {
 
 function submitMenu() {
   const name = menuForm.name.trim()
-  if (!name) return setToast('请输入菜单名称')
-  if (name.length > 4) return setToast('名称最多 4 个字')
+  if (!name) return setToast('请输入菜单名称', 'error')
+  if (name.length > 4) return setToast('名称最多 4 个字', 'error')
+  const duplicate = state.menus.some(
+    (menu) => menu.name === name && menu.id !== editingMenuId.value
+  )
+  if (duplicate) return setToast('菜单名称已存在', 'error')
 
   if (editingMenuId.value) {
     const target = state.menus.find((m) => m.id === editingMenuId.value)
@@ -427,6 +439,7 @@ function submitMenu() {
   } else {
     const id = createId()
     state.menus.push({ id, name })
+    state.menus = normalizeMenus(state.menus)
     state.activeMenuId = id
   }
   menuModalOpen.value = false
@@ -450,7 +463,7 @@ function startMenuDrag(id) {
 function dropMenu(targetId) {
   if (!canDrag.value) return
   if (!draggingMenuId.value || draggingMenuId.value === targetId) return
-  state.menus = moveItem(state.menus, draggingMenuId.value, targetId)
+  state.menus = normalizeMenus(moveItem(state.menus, draggingMenuId.value, targetId))
   draggingMenuId.value = null
 }
 
@@ -475,6 +488,15 @@ function dropLink(targetId) {
 
 function openLink(url) {
   window.open(url, '_blank', 'noopener')
+}
+
+function toggleTagFilter(tag) {
+  const current = state.search.trim()
+  if (current === tag) {
+    state.search = ''
+    return
+  }
+  state.search = tag
 }
 
 async function copyTitle(title) {
@@ -529,7 +551,7 @@ function handleImport(event) {
     try {
       const parsed = JSON.parse(reader.result)
       if (!Array.isArray(parsed.menus) || !Array.isArray(parsed.links)) throw new Error('格式不正确')
-      state.menus = parsed.menus
+      state.menus = normalizeMenus(parsed.menus)
       state.links = parsed.links
       state.settings = { ...seedSettings, ...(parsed.settings || {}) }
       if (state.settings.theme) {
@@ -539,7 +561,7 @@ function handleImport(event) {
       setToast('已导入配置')
     } catch (err) {
       console.error(err)
-      setToast('导入失败：请检查 JSON')
+      setToast('导入失败：请检查 JSON', 'error')
     }
   }
   reader.readAsText(file)
@@ -552,12 +574,23 @@ function clearCache() {
   setToast('已清除缓存并恢复默认')
 }
 
-function setToast(message) {
-  messageApi?.success?.(message)
+function setToast(message, type = 'success') {
+  const handler = messageApi?.[type] || messageApi?.success
+  handler?.(message)
 }
 
 function createId() {
   return Math.random().toString(36).slice(2, 8)
+}
+
+function normalizeMenus(list) {
+  if (!Array.isArray(list)) return []
+  const next = [...list]
+  const index = next.findIndex((item) => item.id === 'links')
+  if (index === -1) return next
+  const [linksMenu] = next.splice(index, 1)
+  next.push(linksMenu)
+  return next
 }
 
 function moveItem(list, fromId, toId) {
@@ -606,7 +639,7 @@ function applyThemeVars(vars = {}) {
 }
 
 function applySeedData() {
-  state.menus = [...seedMenus]
+  state.menus = normalizeMenus([...seedMenus])
   state.links = [...seedLinks]
   state.settings = { ...seedSettings }
   state.activeMenuId = seedMenus[0].id
@@ -620,15 +653,36 @@ function loadInitialState() {
     const cache = localStorage.getItem(storageKey)
     if (cache) {
       const parsed = JSON.parse(cache)
-      state.menus = parsed.menus?.length ? parsed.menus : [...seedMenus]
-      state.links = parsed.links?.length ? parsed.links : [...seedLinks]
-      state.settings = { ...seedSettings, ...(parsed.settings || {}) }
-      const validTheme = ['light', 'dark', 'system'].includes(state.settings.theme) ? state.settings.theme : 'system'
+      const resolvedMenus = normalizeMenus(parsed.menus?.length ? parsed.menus : [...seedMenus])
+      const resolvedLinks = parsed.links?.length ? parsed.links : [...seedLinks]
+      const resolvedSettings = { ...seedSettings, ...(parsed.settings || {}) }
+      const validTheme = ['light', 'dark', 'system'].includes(resolvedSettings.theme)
+        ? resolvedSettings.theme
+        : 'system'
       setTheme(validTheme)
-      state.activeMenuId =
+      const resolvedActiveMenuId =
         parsed.activeMenuId ||
         parsed.menus?.[0]?.id ||
-        (state.menus.length ? state.menus[0].id : seedMenus[0].id)
+        (resolvedMenus.length ? resolvedMenus[0].id : seedMenus[0].id)
+      state.menus = resolvedMenus
+      state.links = resolvedLinks
+      state.settings = resolvedSettings
+      state.activeMenuId = resolvedActiveMenuId
+      const defaultCache = {
+        menus: seedMenus,
+        links: seedLinks,
+        settings: seedSettings,
+        activeMenuId: seedMenus[0].id,
+      }
+      const resolvedCache = {
+        menus: resolvedMenus,
+        links: resolvedLinks,
+        settings: resolvedSettings,
+        activeMenuId: resolvedActiveMenuId,
+      }
+      if (JSON.stringify(defaultCache) === JSON.stringify(resolvedCache)) {
+        tourOpen.value = true
+      }
     } else {
       applySeedData()
       tourOpen.value = true
@@ -636,7 +690,6 @@ function loadInitialState() {
   } catch (err) {
     console.warn('读取缓存失败', err)
     applySeedData()
-    tourOpen.value = true
   }
 }
 </script>
@@ -687,7 +740,6 @@ function loadInitialState() {
         </Space>
         <Button ref="newLinkBtnRef" type="primary" size="large" @click="openNewLink" :icon="h(PlusOutlined)">新增链接</Button>
         <Button ref="settingBtnRef" size="large" @click="settingDrawerOpen = true" :icon="h(SettingOutlined)">配置项</Button>
-        <Button size="large" type="default" ghost @click="tourOpen = true">引导</Button>
       </Space>
         </header>
 
@@ -699,11 +751,19 @@ function loadInitialState() {
             style="width: 280px"
             placeholder="搜索标题、标签"
           />
-          <div class="tag-row">
-            <span class="muted">标签:</span>
-            <span v-if="!availableTags.length" class="muted">暂无</span>
-            <Tag v-for="tag in availableTags" :key="tag" :style="getTagStyle(tag)">{{ tag }}</Tag>
-          </div>
+        <div class="tag-row">
+          <span class="muted">标签:</span>
+          <span v-if="!availableTags.length" class="muted">暂无</span>
+          <Tag
+            v-for="tag in availableTags"
+            :key="tag"
+            :style="getTagStyle(tag)"
+            :class="{ 'tag--active': state.search.trim() === tag }"
+            @click="toggleTagFilter(tag)"
+          >
+            {{ tag }}
+          </Tag>
+        </div>
         </div>
 
         <LinkGrid
@@ -730,6 +790,7 @@ function loadInitialState() {
         :link-rules="linkRules"
         :form-layout="formLayout"
         :menus="state.menus"
+        :tag-options="tagOptions"
         @submit="submitLink"
       />
 

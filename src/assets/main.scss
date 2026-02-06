@@ -216,6 +216,20 @@ textarea {
   gap: 8px;
 }
 
+.tag-row .ant-tag {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tag-row .ant-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.tag-row .ant-tag.tag--active {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
 .tag-pill {
   padding: 4px 8px;
   border-radius: 10px;
