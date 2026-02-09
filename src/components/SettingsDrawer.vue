@@ -33,7 +33,7 @@ const emit = defineEmits(['update:open', 'update:themeValue', 'export', 'import'
         </a-select>
       </a-form-item>
       <a-form-item label="列数">
-        <a-slider v-model:value="settings.columns" :min="2" :max="4" />
+        <a-slider v-model:value="settings.columns" :min="2" :max="5" />
       </a-form-item>
       <a-form-item label="紧凑模式">
         <a-checkbox v-model:checked="settings.dense" />

@@ -7,6 +7,7 @@ const props = defineProps({
   dense: { type: Boolean, default: false },
   showDescription: { type: Boolean, default: true },
   getTagStyle: { type: Function, default: () => ({}) },
+  activeTag: { type: String, default: '' },
 })
 
 const emit = defineEmits(['open', 'edit', 'delete', 'drag-start', 'drag-end', 'drop', 'copy-title'])
@@ -17,6 +18,36 @@ const getInitial = (title = '') => {
   const trimmed = title.trim()
   return trimmed ? trimmed[0] : '?'
 }
+
+const toRgba = (color, alpha = 0.12) => {
+  if (!color) return ''
+  const trimmed = color.trim()
+  if (trimmed.startsWith('#')) {
+    const hex = trimmed.slice(1)
+    const normalized = hex.length === 3 ? hex.split('').map((c) => c + c).join('') : hex
+    if (normalized.length !== 6) return ''
+    const r = parseInt(normalized.slice(0, 2), 16)
+    const g = parseInt(normalized.slice(2, 4), 16)
+    const b = parseInt(normalized.slice(4, 6), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+  if (trimmed.startsWith('rgb')) {
+    const parts = trimmed.match(/\d+/g)
+    if (!parts || parts.length < 3) return ''
+    const [r, g, b] = parts
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+  return ''
+}
+
+const getCardStyle = (link) => {
+  if (!props.activeTag) return {}
+  const primaryTag = props.activeTag
+  const tagStyle = props.getTagStyle(primaryTag) || {}
+  const baseColor = tagStyle.backgroundColor || tagStyle.background || ''
+  const tint = toRgba(baseColor, 0.14)
+  return tint ? { '--tag-tint': tint } : {}
+}
 </script>
 
 <template>
@@ -26,6 +57,7 @@ const getInitial = (title = '') => {
       :key="link.id"
       class="card card--list"
       :class="denseClass"
+      :style="getCardStyle(link)"
       :bordered="true"
       :draggable="canDrag"
       @dragstart="emit('drag-start', link.id)"
@@ -39,8 +71,12 @@ const getInitial = (title = '') => {
             {{ getInitial(link.title) }}
           </div>
           <div class="card__content" @click.stop="emit('open', link.url)">
-            <p class="card__title">{{ link.title }}</p>
-            <p v-if="showDescription" class="card__desc">{{ link.description }}</p>
+            <p class="card__title card__title--truncate" @click.stop="emit('copy-title', link.title)">
+              {{ link.title }}
+            </p>
+            <a-tooltip v-if="showDescription && link.description" :title="link.description">
+              <p class="card__desc card__desc--truncate">{{ link.description }}</p>
+            </a-tooltip>
           </div>
         </div>
         <template #overlay>

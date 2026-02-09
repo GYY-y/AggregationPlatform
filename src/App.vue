@@ -20,6 +20,7 @@ import {
   PictureOutlined,
   MessageOutlined,
   ThunderboltOutlined,
+  SearchOutlined,
 } from '@ant-design/icons-vue'
 import { useTheme } from './composables/useTheme'
 import MenuList from './components/MenuList.vue'
@@ -291,6 +292,12 @@ const availableTags = computed(() => {
     : state.links
   scopedLinks.forEach((l) => l.tags.forEach((t) => tagSet.add(t)))
   return Array.from(tagSet)
+})
+
+const activeTag = computed(() => {
+  const keyword = state.search.trim()
+  if (!keyword) return ''
+  return availableTags.value.find((tag) => tag.toLowerCase() === keyword.toLowerCase()) || ''
 })
 
 const tagOptions = computed(() => {
@@ -824,9 +831,14 @@ function loadInitialState() {
             v-model:value="state.search"
             allow-clear
             size="large"
+            class="search-input"
             style="width: 280px"
             placeholder="搜索标题、标签"
-          />
+          >
+            <template #prefix>
+              <SearchOutlined />
+            </template>
+          </Input>
         <div class="tag-row">
           <span class="muted">标签:</span>
           <span v-if="!availableTags.length" class="muted">暂无</span>
@@ -849,6 +861,7 @@ function loadInitialState() {
           :show-description="state.settings.showDescription"
           :style="{ gridTemplateColumns: `repeat(${state.settings.columns}, minmax(0, 1fr))` }"
           :get-tag-style="getTagStyle"
+          :active-tag="activeTag"
           @open="openLink"
           @edit="openEditLink"
           @delete="deleteLink"

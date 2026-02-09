@@ -1,6 +1,6 @@
 <script setup>
 import { App as AntApp } from 'ant-design-vue'
-import { ref } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -16,6 +16,14 @@ const menuFormRef = ref(null)
 const { message } = AntApp.useApp()
 
 const handleCancel = () => emit('update:open', false)
+
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (!isOpen) return
+    nextTick(() => menuFormRef.value?.clearValidate())
+  }
+)
 
 async function handleOk() {
   try {
@@ -33,6 +41,7 @@ defineExpose({ validate: () => menuFormRef.value?.validate() })
   <a-modal
     :open="open"
     :title="title"
+    :mask-closable="false"
     ok-text="保存"
     cancel-text="取消"
     @ok="handleOk"
@@ -48,7 +57,7 @@ defineExpose({ validate: () => menuFormRef.value?.validate() })
     :label-align="formLayout.labelAlign"
   >
       <a-form-item label="菜单图标" name="icon" :required="true">
-        <a-select v-model:value="menuForm.icon" placeholder="选择图标" option-label-prop="label">
+        <a-select v-model:value="menuForm.icon" placeholder="请选择图标" option-label-prop="label">
           <a-select-option
             v-for="item in iconOptions"
             :key="item.value"

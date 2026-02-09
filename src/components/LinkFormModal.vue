@@ -34,6 +34,7 @@ defineExpose({ validate: () => linkFormRef.value?.validate() })
   <a-modal
     :open="open"
     :title="title"
+    :mask-closable="false"
     ok-text="保存"
     cancel-text="取消"
     @ok="handleOk"
