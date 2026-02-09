@@ -126,7 +126,7 @@ const seedLinks = [
 const seedTags = Array.from(new Set(seedLinks.flatMap((link) => link.tags)))
 
 const seedSettings = {
-  columns: 3,
+  columns: 4,
   showDescription: true,
   dense: false,
   accent: '#4F7AFA',
