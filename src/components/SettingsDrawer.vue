@@ -86,6 +86,22 @@ const resetContentBackground = () => {
       <a-form-item label="显示菜单数量">
         <a-checkbox v-model:checked="settings.showMenuCount" />
       </a-form-item>
+      <a-form-item label="配置">
+        <a-space>
+          <a-button size="middle" @click="emit('export')">导出配置</a-button>
+          <a-button size="middle" @click="emit('import')">导入配置</a-button>
+          <a-button size="middle" danger ghost @click="emit('clear')">清除缓存</a-button>
+        </a-space>
+      </a-form-item>
+      <a-form-item class="storage-warning-item" :wrapper-col="formLayout.wrapperCol">
+        <a-alert
+          class="storage-warning"
+          type="warning"
+          show-icon
+          message="数据保存在当前浏览器"
+          description="清理浏览器缓存前，请先导出配置。浏览器无法在网页未打开时通知本站，因此导出文件是最可靠的备份方式。"
+        />
+      </a-form-item>
       <a-form-item label="背景样式" class="background-form-item">
         <a-tabs v-model:active-key="settings.backgroundMode" class="background-tabs">
           <a-tab-pane key="color" tab="内容背景色">
@@ -113,22 +129,6 @@ const resetContentBackground = () => {
             </div>
           </a-tab-pane>
         </a-tabs>
-      </a-form-item>
-      <a-form-item label="配置">
-        <a-space>
-          <a-button size="middle" @click="emit('export')">导出配置</a-button>
-          <a-button size="middle" @click="emit('import')">导入配置</a-button>
-          <a-button size="middle" danger ghost @click="emit('clear')">清除缓存</a-button>
-        </a-space>
-      </a-form-item>
-      <a-form-item class="storage-warning-item" :wrapper-col="formLayout.wrapperCol">
-        <a-alert
-          class="storage-warning"
-          type="warning"
-          show-icon
-          message="数据保存在当前浏览器"
-          description="清理浏览器缓存前，请先导出配置。浏览器无法在网页未打开时通知本站，因此导出文件是最可靠的备份方式。"
-        />
       </a-form-item>
     </a-form>
   </a-drawer>
