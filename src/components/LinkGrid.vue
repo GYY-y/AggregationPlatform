@@ -14,11 +14,6 @@ const emit = defineEmits(['open', 'edit', 'delete', 'drag-start', 'drag-end', 'd
 
 const denseClass = computed(() => (props.dense ? 'card--dense' : ''))
 
-const getInitial = (title = '') => {
-  const trimmed = title.trim()
-  return trimmed ? trimmed[0] : '?'
-}
-
 const toRgba = (color, alpha = 0.12) => {
   if (!color) return ''
   const trimmed = color.trim()
@@ -66,9 +61,6 @@ const getCardStyle = (link) => {
         @drop.prevent="emit('drop', link.id)"
       >
         <div class="card__row">
-          <div class="card__avatar" @click.stop="emit('copy-title', link.title)">
-            {{ getInitial(link.title) }}
-          </div>
           <div class="card__content">
             <p class="card__title card__title--truncate" @click.stop="emit('copy-title', link.title)">
               {{ link.title }}

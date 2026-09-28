@@ -12,6 +12,7 @@ const props = defineProps({
   disableEditIds: { type: Array, default: () => [] },
   collapsed: { type: Boolean, default: false },
   homeId: { type: String, default: '__home__' },
+  aboutId: { type: String, default: '__about__' },
 })
 
 const emit = defineEmits(['select', 'edit', 'delete', 'drag-start', 'drag-end', 'drop'])
@@ -73,6 +74,18 @@ const getCount = (id) => props.menuLinkCount[id] || 0
           </div>
           <div v-if="!collapsed" class="menu-title">{{ menu.name }}</div>
           <a-tag v-if="showMenuCount && !collapsed" class="menu-count">{{ getCount(menu.id) }}</a-tag>
+        </div>
+      </a-tooltip>
+    </div>
+    <div
+      class="menu-item menu-item--about"
+      :class="{ active: aboutId === activeMenuId, 'menu-item--collapsed': collapsed }"
+      @click="emit('select', aboutId)"
+    >
+      <a-tooltip :title="collapsed ? '关于本站' : undefined" placement="right">
+        <div class="menu-card">
+          <div class="menu-icon"><component :is="iconMap.about" /></div>
+          <div v-if="!collapsed" class="menu-title">关于本站</div>
         </div>
       </a-tooltip>
     </div>

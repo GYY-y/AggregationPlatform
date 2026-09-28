@@ -22,6 +22,7 @@ import {
   ThunderboltOutlined,
   SearchOutlined,
   HomeOutlined,
+  InfoCircleOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from '@ant-design/icons-vue'
@@ -40,7 +41,6 @@ const seedMenus = [
   { id: 'wk', name: '工作效率', icon: 'ThunderboltOutlined' },
   { id: 'dev', name: '开发工具', icon: 'ToolOutlined' },
   { id: 'ref', name: '学习资料', icon: 'BookOutlined' },
-  { id: 'links', name: '友情链接', icon: 'LinkOutlined' },
 ]
 
 const seedLinks = [
@@ -75,54 +75,6 @@ const seedLinks = [
     url: 'https://www.figma.com/',
     description: '设计规范与最新交互稿集合。',
     tags: ['设计', '工具', '素材'],
-  },
-  {
-    id: 'novel-preview',
-    menuId: 'links',
-    title: 'Skill 创作小说（预览）',
-    url: 'https://novelplatform-one.vercel.app/',
-    description: '创作小说平台的预览地址。',
-    tags: ['预览', '娱乐', '内容'],
-  },
-  {
-    id: 'novel-github',
-    menuId: 'links',
-    title: 'Skill 创作小说（GitHub）',
-    url: 'https://github.com/GYY-y/novelPlatform',
-    description: '创作小说平台的 GitHub 仓库。',
-    tags: ['开发', 'GitHub', '资源'],
-  },
-  {
-    id: 'spring-preview',
-    menuId: 'links',
-    title: '春节小游戏（预览）',
-    url: 'https://minigame-delta-inky.vercel.app/',
-    description: '春节小游戏预览地址。',
-    tags: ['预览', '娱乐', '游戏'],
-  },
-  {
-    id: 'spring-github',
-    menuId: 'links',
-    title: '春节小游戏（GitHub）',
-    url: 'https://github.com/GYY-y/mini-game',
-    description: '春节小游戏的 GitHub 仓库。',
-    tags: ['开发', 'GitHub', '资源'],
-  },
-  {
-    id: 'agg-preview',
-    menuId: 'links',
-    title: '聚合工作台（预览）',
-    url: 'https://aggregation-platform.vercel.app/',
-    description: '当前平台的预览地址。',
-    tags: ['预览', '工具', '资源'],
-  },
-  {
-    id: 'agg-github',
-    menuId: 'links',
-    title: '聚合工作台（GitHub）',
-    url: 'https://github.com/GYY-y/AggregationPlatform',
-    description: '当前平台的 GitHub 仓库。',
-    tags: ['开发', 'GitHub', '资源'],
   },
 ]
 
@@ -185,6 +137,7 @@ const tourOpen = ref(false)
 const sidebarCollapsed = ref(false)
 const sidebarLogoHovered = ref(false)
 const sidebarStorageKey = 'aggregation-platform-sidebar-collapsed'
+const aboutMenuId = '__about__'
 const motivationalQuotes = [
   '今天也要向前一步',
   '慢慢来，也很快',
@@ -239,6 +192,7 @@ const menuIconMap = {
   MessageOutlined,
   ThunderboltOutlined,
   home: HomeOutlined,
+  about: InfoCircleOutlined,
   default: AppstoreOutlined,
 }
 
@@ -333,40 +287,47 @@ const menuLinkCount = computed(() => {
 })
 
 const tagPalette = [
-  { bg: '#1677ff', text: '#fff' },
-  { bg: '#13c2c2', text: '#fff' },
-  { bg: '#52c41a', text: '#0b1a0a' },
-  { bg: '#fa8c16', text: '#1f0f00' },
-  { bg: '#f5222d', text: '#fff' },
-  { bg: '#722ed1', text: '#fff' },
-  { bg: '#2f54eb', text: '#fff' },
-  { bg: '#08979c', text: '#fff' },
-  { bg: '#a0d911', text: '#0d1a00' },
-  { bg: '#eb2f96', text: '#fff' },
+  '#1677ff', '#13c2c2', '#52c41a', '#fa8c16', '#f5222d',
+  '#722ed1', '#2f54eb', '#08979c', '#a0d911', '#eb2f96',
 ]
+
+function getTagTextColor(background) {
+  const hex = background.replace('#', '')
+  const normalized = hex.length === 3 ? hex.split('').map((char) => char + char).join('') : hex
+  const channels = [0, 2, 4].map((offset) => parseInt(normalized.slice(offset, offset + 2), 16) / 255)
+  const luminance = channels.map((channel) => (channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4))
+  const contrast = 0.2126 * luminance[0] + 0.7152 * luminance[1] + 0.0722 * luminance[2]
+  return contrast > 0.42 ? '#182230' : '#fff'
+}
 
 const tagStyleMap = computed(() => {
   const map = {}
   availableTags.value.forEach((tag, idx) => {
-    const { bg, text } = tagPalette[idx % tagPalette.length]
-    map[tag] = { backgroundColor: bg, color: text, borderColor: bg }
+    const bg = tagPalette[idx % tagPalette.length]
+    map[tag] = { backgroundColor: bg, color: getTagTextColor(bg), borderColor: bg }
   })
   return map
 })
 
 function getTagStyle(tag) {
   if (!tag) {
-    const { bg, text } = tagPalette[0]
-    return { backgroundColor: bg, color: text, borderColor: bg }
+    const bg = tagPalette[0]
+    return { backgroundColor: bg, color: getTagTextColor(bg), borderColor: bg }
   }
   return tagStyleMap.value[tag] || (() => {
-    const { bg, text } = tagPalette[0]
-    return { backgroundColor: bg, color: text, borderColor: bg }
+    const bg = tagPalette[0]
+    return { backgroundColor: bg, color: getTagTextColor(bg), borderColor: bg }
   })()
 }
 
 const denseClass = computed(() => (state.settings.dense ? 'card--dense' : ''))
 const canDrag = computed(() => state.settings.enableDrag)
+const isAboutPage = computed(() => state.activeMenuId === aboutMenuId)
+const contentBackground = computed(() => {
+  const configured = state.settings.contentBackground || '#fcfcfc'
+  const isDefault = configured.toLowerCase() === '#fcfcfc'
+  return effectiveTheme.value === 'dark' && isDefault ? themePresets.dark.background : configured
+})
 
 const themeVars = computed(() => {
   const preset = effectiveTheme.value === 'dark' ? themePresets.dark : themePresets.light
@@ -376,13 +337,13 @@ const themeVars = computed(() => {
     '--accent': accent,
     '--accent-2': accent2,
     '--bg': preset.background,
-    '--content-bg': state.settings.contentBackground || '#fcfcfc',
+    '--content-bg': contentBackground.value,
     '--surface': preset.surface,
     '--surface-alt': preset.surfaceAlt,
     '--line': preset.line,
     '--muted': preset.muted,
     '--text': preset.text,
-    '--sidebar-bg': state.settings.contentBackground || '#fcfcfc',
+    '--sidebar-bg': contentBackground.value,
     '--sidebar-hover': effectiveTheme.value === 'dark' ? '#212121' : '#ececec',
     '--sidebar-active': effectiveTheme.value === 'dark' ? '#2f2f2f' : '#e5e5e5',
     '--sidebar-text': effectiveTheme.value === 'dark' ? '#ececec' : '#2f2f2f',
@@ -705,15 +666,10 @@ function createId() {
 
 function normalizeMenus(list) {
   if (!Array.isArray(list)) return []
-  const next = list.map((item) => ({
+  return list.filter((item) => item.id !== 'links').map((item) => ({
     ...item,
     icon: item.icon || 'AppstoreOutlined',
   }))
-  const index = next.findIndex((item) => item.id === 'links')
-  if (index === -1) return next
-  const [linksMenu] = next.splice(index, 1)
-  next.push(linksMenu)
-  return next
 }
 
 function moveItem(list, fromId, toId) {
@@ -777,16 +733,16 @@ function loadInitialState() {
     if (cache) {
       const parsed = JSON.parse(cache)
       const resolvedMenus = normalizeMenus(parsed.menus?.length ? parsed.menus : [...seedMenus])
-      const resolvedLinks = parsed.links?.length ? parsed.links : [...seedLinks]
+      const resolvedLinks = (parsed.links?.length ? parsed.links : [...seedLinks]).filter((link) => link.menuId !== 'links')
       const resolvedSettings = { ...seedSettings, ...(parsed.settings || {}) }
       const validTheme = ['light', 'dark', 'system'].includes(resolvedSettings.theme)
         ? resolvedSettings.theme
         : 'system'
       setTheme(validTheme)
-      const resolvedActiveMenuId =
-        parsed.activeMenuId ||
-        parsed.menus?.[0]?.id ||
-        homeMenuId
+      const requestedActiveMenuId = parsed.activeMenuId || parsed.menus?.[0]?.id || homeMenuId
+      const resolvedActiveMenuId = resolvedMenus.some((menu) => menu.id === requestedActiveMenuId)
+        ? requestedActiveMenuId
+        : homeMenuId
       state.menus = resolvedMenus
       state.links = resolvedLinks
       state.settings = resolvedSettings
@@ -859,9 +815,10 @@ function loadInitialState() {
           :icon-map="menuIconMap"
           :edit-icon="h(EditOutlined)"
           :delete-icon="h(DeleteOutlined)"
-          :disable-edit-ids="['links']"
+          :disable-edit-ids="[]"
           :collapsed="sidebarCollapsed"
           :home-id="homeMenuId"
+          :about-id="aboutMenuId"
           @select="state.activeMenuId = $event"
           @edit="openEditMenu"
           @delete="deleteMenu"
@@ -885,9 +842,9 @@ function loadInitialState() {
       <main class="content">
         <header class="header">
           <div>
-            <h1>链接聚合</h1>
+            <h1>{{ isAboutPage ? '关于本站' : '链接聚合' }}</h1>
           </div>
-          <Space class="header__actions" wrap>
+          <Space v-if="!isAboutPage" class="header__actions" wrap>
             <Tooltip title="开启后支持左侧菜单和右侧内容拖拽排序">
               <Space size="small">
                 <span class="muted">拖拽排序</span>
@@ -899,6 +856,7 @@ function loadInitialState() {
           </Space>
         </header>
 
+        <template v-if="!isAboutPage">
         <div class="toolbar">
           <Input
             v-model:value="state.search"
@@ -946,6 +904,20 @@ function loadInitialState() {
         <footer class="content-footer" aria-live="polite">
           {{ motivationalQuotes[currentQuoteIndex] }}
         </footer>
+        </template>
+        <section v-else class="about-page" aria-label="关于本站">
+          <p>感谢你的来访。</p>
+          <p>聚合工作台是一个轻量的个人链接管理工具，用来集中整理日常使用的网站、工具和资料，让常用入口更容易找到，也更方便维护。</p>
+          <p>如果你喜欢本站，欢迎将本站添加到收藏夹（快捷键 Ctrl+D），也可以设为浏览器主页，方便下次访问。感谢你的支持。</p>
+
+          <h3>你可以用它做什么</h3>
+          <p>通过菜单对链接进行分组，使用标签和关键词快速筛选内容；也可以新增、编辑、删除链接和菜单，并按照自己的习惯调整顺序。</p>
+          <p>工作台支持拖拽排序、主题切换、卡片列数、紧凑模式和描述显示等设置，适配不同的使用习惯和信息密度。</p>
+          <p>菜单、链接和界面设置会保存在当前浏览器的本地存储中，也支持导入和导出配置，方便备份或迁移到其他环境。</p>
+
+          <h3>隐私说明</h3>
+          <p>本站本身不需要账号，应用数据默认保存在当前浏览器本地，不会主动上传到应用服务器。打开链接后，目标网站可能会按照其自身的隐私政策处理访问数据。</p>
+        </section>
       </main>
 
       <LinkFormModal

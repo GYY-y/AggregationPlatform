@@ -246,6 +246,25 @@ textarea {
   align-items: center;
 }
 
+.about-page {
+  width: 100%;
+  max-width: none;
+  margin-top: 28px;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.9;
+}
+
+.about-page p {
+  margin: 0 0 14px;
+}
+
+.about-page h3 {
+  margin: 34px 0 14px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
 .eyebrow {
   margin: 0;
   text-transform: uppercase;
@@ -332,8 +351,7 @@ textarea {
 .card__row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  min-height: 56px;
+  min-height: 44px;
 }
 
 .card--list .card__row {
@@ -610,6 +628,23 @@ textarea {
 
 .accent-theme .ant-btn-primary {
   color: #fff;
+}
+
+[data-theme='dark'] .card--list {
+  border-color: var(--line);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme='dark'] .tag-pill,
+[data-theme='dark'] .pill,
+[data-theme='dark'] .chip {
+  color: var(--text);
+  background: var(--surface-alt);
+}
+
+[data-theme='dark'] .count {
+  color: var(--text);
+  background: var(--surface-alt);
 }
 
 .form-modal .ant-modal-body {
