@@ -138,7 +138,17 @@ const getCount = (id) => props.menuLinkCount[id] || 0
 }
 
 .menu-count {
-  display: none;
+  margin-left: auto;
+  padding: 0 5px;
+  min-width: 20px;
+  height: 18px;
+  line-height: 18px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--surface-alt);
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
 }
 
 :deep(.ant-dropdown-menu-item.menu-item--danger) {
