@@ -12,6 +12,32 @@ const props = defineProps({
 
 const emit = defineEmits(['update:open', 'update:themeValue', 'export', 'import', 'clear'])
 
+const handleBackgroundUpload = (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+  if (!file.type.startsWith('image/')) return
+  const reader = new FileReader()
+  reader.onload = () => {
+    const image = new Image()
+    image.onload = () => {
+      const maxSize = 1200
+      const scale = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale))
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale))
+      canvas.getContext('2d')?.drawImage(image, 0, 0, canvas.width, canvas.height)
+      props.settings.backgroundImage = canvas.toDataURL('image/jpeg', 0.58)
+    }
+    image.src = reader.result
+  }
+  reader.readAsDataURL(file)
+  event.target.value = ''
+}
+
+const clearBackground = () => {
+  props.settings.backgroundImage = ''
+}
+
 const resetContentBackground = () => {
   props.settings.contentBackground = defaultContentBackground
 }
@@ -52,7 +78,7 @@ const resetContentBackground = () => {
       <a-form-item label="显示菜单数量">
         <a-checkbox v-model:checked="settings.showMenuCount" />
       </a-form-item>
-      <a-form-item label="内容背景色">
+      <a-form-item v-if="!settings.backgroundImage" label="内容背景色">
         <div class="color-setting">
           <input v-model="settings.contentBackground" type="color" aria-label="选择内容背景色" />
           <span>{{ settings.contentBackground }}</span>
@@ -66,6 +92,24 @@ const resetContentBackground = () => {
               <ReloadOutlined />
             </a-button>
           </a-tooltip>
+        </div>
+      </a-form-item>
+      <a-form-item label="页面背景图">
+        <div class="background-setting">
+          <input
+            type="file"
+            accept="image/*"
+            aria-label="上传页面背景图"
+            @change="handleBackgroundUpload"
+          />
+          <a-button v-if="settings.backgroundImage" size="small" @click="clearBackground">移除背景图</a-button>
+          <span v-else class="background-setting__hint">未设置</span>
+        </div>
+      </a-form-item>
+      <a-form-item v-if="settings.backgroundImage" label="背景模糊度">
+        <div class="slider-setting">
+          <a-slider v-model:value="settings.backgroundBlur" :min="0" :max="20" :step="1" />
+          <span>{{ settings.backgroundBlur }}px</span>
         </div>
       </a-form-item>
       <a-form-item label="配置">
@@ -126,5 +170,41 @@ const resetContentBackground = () => {
 .color-setting :deep(.ant-btn:hover) {
   color: var(--text);
   background: var(--surface-alt);
+}
+
+.background-setting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.background-setting input {
+  max-width: 190px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.background-setting__hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.slider-setting {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider-setting :deep(.ant-slider) {
+  flex: 1;
+  min-width: 120px;
+}
+
+.slider-setting span {
+  min-width: 36px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
 }
 </style>

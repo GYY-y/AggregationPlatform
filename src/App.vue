@@ -89,6 +89,8 @@ const seedSettings = {
   showMenuCount: false,
   enableDrag: false,
   contentBackground: '#fcfcfc',
+  backgroundImage: '',
+  backgroundBlur: 0,
 }
 
 const baseLight = {
@@ -391,16 +393,20 @@ const themeVars = computed(() => {
     '--accent-2': accent2,
     '--bg': preset.background,
     '--content-bg': contentBackground.value,
+    '--content-bg-layer': state.settings.backgroundImage ? 'transparent' : contentBackground.value,
     '--surface': preset.surface,
     '--surface-alt': preset.surfaceAlt,
     '--line': preset.line,
     '--muted': preset.muted,
     '--text': preset.text,
     '--sidebar-bg': contentBackground.value,
+    '--sidebar-bg-layer': state.settings.backgroundImage ? 'transparent' : contentBackground.value,
     '--sidebar-hover': effectiveTheme.value === 'dark' ? '#212121' : '#ececec',
     '--sidebar-active': effectiveTheme.value === 'dark' ? '#2f2f2f' : '#e5e5e5',
     '--sidebar-text': effectiveTheme.value === 'dark' ? '#ececec' : '#2f2f2f',
     '--sidebar-muted': effectiveTheme.value === 'dark' ? '#a1a1a1' : '#6b6b6b',
+    '--page-bg-image': state.settings.backgroundImage ? `url("${state.settings.backgroundImage}")` : 'none',
+    '--page-bg-blur': `${state.settings.backgroundBlur || 0}px`,
   }
 })
 
@@ -432,7 +438,17 @@ const tourSteps = computed(() => [
 watch(
   () => ({ menus: state.menus, links: state.links, settings: state.settings, activeMenuId: state.activeMenuId }),
   (val) => {
-    localStorage.setItem(storageKey, JSON.stringify(val))
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(val))
+    } catch (error) {
+      if (error?.name !== 'QuotaExceededError') throw error
+      const { backgroundImage, ...settingsWithoutBackground } = val.settings || {}
+      try {
+        localStorage.setItem(storageKey, JSON.stringify({ ...val, settings: settingsWithoutBackground }))
+      } catch (fallbackError) {
+        console.warn('配置空间不足，已跳过本次本地保存', fallbackError)
+      }
+    }
   },
   { deep: true }
 )
