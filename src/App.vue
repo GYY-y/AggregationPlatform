@@ -139,11 +139,64 @@ const sidebarLogoHovered = ref(false)
 const sidebarStorageKey = 'aggregation-platform-sidebar-collapsed'
 const aboutMenuId = '__about__'
 const motivationalQuotes = [
-  '今天也要向前一步',
-  '慢慢来，也很快',
-  '保持热爱，奔赴山海',
-  '积小步，成大事',
-  '专注当下，自有答案',
+  '醉后不知天在水，满船清梦压星河',
+  '晚来天欲雪，能饮一杯无',
+  '山中何事，松花酿酒，春水煎茶',
+  '既见君子，云胡不喜',
+  '你来时冬至，但眉上风止，开口是所谓来日方长',
+  '祝你今天愉快，明天的愉快留给我明天再祝',
+  '万物皆有裂痕，那是光照进来的地方',
+  '我想和你一起生活，在某个小镇，共享无尽的黄昏，和绵绵不绝的钟声',
+  '愿有一盏灯，照见晚归的人',
+  '春风有信，花开有期',
+  '把日子过成一首缓慢的诗',
+  '山高水长，来日方长',
+  '愿你心之所向，都有回响',
+  '云在青天水在瓶，自在便是好时光',
+  '清风明月本无价，近水远山皆有情',
+  '愿岁月静好，也愿你眼里有光',
+  '把烦恼交给晚风，把答案留给时间',
+  '星河滚烫，你是人间理想',
+  '愿你所遇皆温柔，所行皆坦途',
+  '一程山水一程歌，慢慢走，慢慢看',
+  '日子清简，心自安然',
+  '愿你有茶有书，也有值得等的人',
+  '风来疏竹，风过而竹不留声',
+  '月色入窗来，今夜宜好梦',
+  '所有美好，都会在恰好的时候抵达',
+  '不惊不扰，静候花开',
+  '愿你三冬暖，愿你春不寒',
+  '远方很远，但脚下每一步都算数',
+  '把平凡的日子，过得热气腾腾',
+  '一半烟火谋生活，一半诗意寻自由',
+  '愿你看遍山河，归来仍是少年',
+  '有风有雨是常态，风雨兼程是状态',
+  '愿每个清晨，都有新的欢喜',
+  '日落尤其温柔，人间皆是浪漫',
+  '借一缕清风，安放今日心事',
+  '愿你眉间无忧，心上有秋',
+  '生活不必太满，留一点空白给欢喜',
+  '愿你走过长夜，仍相信天明',
+  '花会沿路盛开，你以后的路也是',
+  '凡是过往，皆为序章',
+  '向内生长，向外奔跑',
+  '愿你心有微光，缓缓成炬',
+  '一念清欢，处处花开',
+  '山止川行，风禾尽起',
+  '愿你在自己的时区里，按时盛开',
+  '不负春光，不负自己',
+  '慢一点，才听得见花开的声音',
+  '有些路，走下去自会有答案',
+  '愿你被世界温柔以待，也温柔地对待自己',
+  '把热爱藏在日常，把远方放在心上',
+  '一窗暖阳，三两清欢',
+  '愿你所得皆所愿，所失亦无憾',
+  '心若向阳，何惧路长',
+  '今夜月明，适合把思念写成一封信',
+  '愿你历尽千帆，归来仍有清风相伴',
+  '人间忽晚，山河已秋',
+  '愿你眼里有星辰，手中有清风',
+  '愿你在每一个普通日子里，都遇见一点不普通的欢喜',
 ]
 const currentQuoteIndex = ref(0)
 let quoteTimer
@@ -218,7 +271,7 @@ const menuRules = {
     },
   ],
 }
-const { message: messageApi } = AntApp.useApp()
+const { message: messageApi, modal: modalApi } = AntApp.useApp()
 const { userTheme, effectiveTheme, setTheme } = useTheme()
 const themeValue = computed({
   get: () => userTheme.value,
@@ -403,6 +456,7 @@ watch(
 onMounted(() => {
   loadInitialState()
   sidebarCollapsed.value = localStorage.getItem(sidebarStorageKey) === 'true'
+  window.addEventListener('beforeunload', warnBeforeBrowserDataClear)
   quoteTimer = window.setInterval(() => {
     currentQuoteIndex.value = (currentQuoteIndex.value + 1) % motivationalQuotes.length
   }, 8000)
@@ -410,6 +464,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.clearInterval(quoteTimer)
+  window.removeEventListener('beforeunload', warnBeforeBrowserDataClear)
 })
 
 watch(sidebarCollapsed, (collapsed) => {
@@ -650,9 +705,26 @@ function handleImport(event) {
 }
 
 function clearCache() {
-  localStorage.removeItem(storageKey)
-  applySeedData()
-  setToast('已清除缓存并恢复默认')
+  modalApi?.confirm?.({
+    title: '清除前请先导出配置',
+    content: '清除缓存会删除当前浏览器中的菜单、链接和设置，且无法恢复。建议先点击“导出配置”完成备份，确认后再继续。',
+    okText: '确认清除',
+    cancelText: '先导出 / 取消',
+    okType: 'danger',
+    onOk: () => {
+      localStorage.removeItem(storageKey)
+      applySeedData()
+      setToast('已清除缓存并恢复默认')
+    },
+  })
+}
+
+function warnBeforeBrowserDataClear(event) {
+  if (!state.menus.length && !state.links.length) return undefined
+  const warning = '当前工作台数据保存在浏览器本地。若要清理浏览器缓存，请先导出配置，否则数据可能丢失。'
+  event.preventDefault()
+  event.returnValue = warning
+  return warning
 }
 
 function setToast(message, type = 'success') {

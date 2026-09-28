@@ -75,6 +75,15 @@ const resetContentBackground = () => {
           <a-button size="middle" danger ghost @click="emit('clear')">清除缓存</a-button>
         </a-space>
       </a-form-item>
+      <a-form-item class="storage-warning-item" :wrapper-col="formLayout.wrapperCol">
+        <a-alert
+          class="storage-warning"
+          type="warning"
+          show-icon
+          message="数据保存在当前浏览器"
+          description="清理浏览器缓存前，请先导出配置。浏览器无法在网页未打开时通知本站，因此导出文件是最可靠的备份方式。"
+        />
+      </a-form-item>
     </a-form>
   </a-drawer>
 </template>
@@ -84,6 +93,14 @@ const resetContentBackground = () => {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+}
+
+.storage-warning {
+  margin-bottom: 0;
+}
+
+.storage-warning-item {
+  margin-top: -8px;
 }
 
 .color-setting input {
