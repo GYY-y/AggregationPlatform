@@ -106,6 +106,25 @@ textarea {
   gap: 8px;
 }
 
+.content-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 36px;
+  margin-top: auto;
+  padding-top: 18px;
+  padding-bottom: 5px;
+  border-top: 1px solid var(--line);
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .sidebar-toggle-btn {
   color: var(--sidebar-muted);
 }
@@ -201,7 +220,10 @@ textarea {
 }
 
 .content {
-  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 32px 32px 0;
   background: var(--content-bg);
 }
 
@@ -634,17 +656,17 @@ textarea {
 }
 
 .sidebar .menu-add-btn {
-  background: transparent;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   border-color: transparent;
-  color: var(--sidebar-muted);
+  color: var(--accent);
   box-shadow: none;
 }
 
 .sidebar .menu-add-btn:hover,
 .sidebar .menu-add-btn:focus-visible {
-  background: var(--sidebar-hover);
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
   border-color: transparent;
-  color: var(--sidebar-text);
+  color: var(--accent);
   box-shadow: none;
 }
 

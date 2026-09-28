@@ -1,5 +1,5 @@
 <script setup>
-import { computed, h, onMounted, reactive, ref, watch } from 'vue'
+import { computed, h, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { App as AntApp, Button, Input, Space, Switch, Tag, Tooltip, Tour } from 'ant-design-vue'
 import {
   PlusOutlined,
@@ -21,6 +21,7 @@ import {
   MessageOutlined,
   ThunderboltOutlined,
   SearchOutlined,
+  HomeOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from '@ant-design/icons-vue'
@@ -184,6 +185,16 @@ const tourOpen = ref(false)
 const sidebarCollapsed = ref(false)
 const sidebarLogoHovered = ref(false)
 const sidebarStorageKey = 'aggregation-platform-sidebar-collapsed'
+const motivationalQuotes = [
+  '今天也要向前一步',
+  '慢慢来，也很快',
+  '保持热爱，奔赴山海',
+  '积小步，成大事',
+  '专注当下，自有答案',
+]
+const currentQuoteIndex = ref(0)
+let quoteTimer
+const homeMenuId = '__home__'
 const formLayout = {
   labelCol: { span: 5 },
   wrapperCol: { span: 19 },
@@ -227,6 +238,7 @@ const menuIconMap = {
   PictureOutlined,
   MessageOutlined,
   ThunderboltOutlined,
+  home: HomeOutlined,
   default: AppstoreOutlined,
 }
 
@@ -280,7 +292,7 @@ const activeMenu = computed(() => state.menus.find((m) => m.id === state.activeM
 const filteredLinks = computed(() => {
   const keyword = state.search.trim().toLowerCase()
   return state.links
-    .filter((link) => (state.activeMenuId ? link.menuId === state.activeMenuId : true))
+    .filter((link) => (state.activeMenuId && state.activeMenuId !== homeMenuId ? link.menuId === state.activeMenuId : true))
     .filter((link) => {
       if (!keyword) return true
       return (
@@ -293,7 +305,7 @@ const filteredLinks = computed(() => {
 
 const availableTags = computed(() => {
   const tagSet = new Set()
-  const scopedLinks = state.activeMenuId
+  const scopedLinks = state.activeMenuId && state.activeMenuId !== homeMenuId
     ? state.links.filter((l) => l.menuId === state.activeMenuId)
     : state.links
   scopedLinks.forEach((l) => l.tags.forEach((t) => tagSet.add(t)))
@@ -430,6 +442,13 @@ watch(
 onMounted(() => {
   loadInitialState()
   sidebarCollapsed.value = localStorage.getItem(sidebarStorageKey) === 'true'
+  quoteTimer = window.setInterval(() => {
+    currentQuoteIndex.value = (currentQuoteIndex.value + 1) % motivationalQuotes.length
+  }, 8000)
+})
+
+onUnmounted(() => {
+  window.clearInterval(quoteTimer)
 })
 
 watch(sidebarCollapsed, (collapsed) => {
@@ -450,7 +469,7 @@ function resetLinkForm(menuId = state.activeMenuId) {
   linkForm.url = ''
   linkForm.description = ''
   linkForm.tags = []
-  linkForm.menuId = menuId || state.menus[0]?.id || ''
+  linkForm.menuId = menuId && menuId !== homeMenuId ? menuId : state.menus[0]?.id || ''
 }
 
 function resetMenuForm() {
@@ -552,7 +571,7 @@ function deleteMenu(id) {
   state.menus = state.menus.filter((m) => m.id !== id)
   state.links = state.links.filter((l) => l.menuId !== id)
   if (state.activeMenuId === id) {
-    state.activeMenuId = state.menus[0]?.id || ''
+    state.activeMenuId = homeMenuId
   }
 }
 
@@ -746,7 +765,7 @@ function applySeedData() {
   state.menus = normalizeMenus([...seedMenus])
   state.links = [...seedLinks]
   state.settings = { ...seedSettings }
-  state.activeMenuId = seedMenus[0].id
+  state.activeMenuId = homeMenuId
   state.search = ''
   setTheme(seedSettings.theme)
   state.settings.accent = seedSettings.accent
@@ -767,7 +786,7 @@ function loadInitialState() {
       const resolvedActiveMenuId =
         parsed.activeMenuId ||
         parsed.menus?.[0]?.id ||
-        (resolvedMenus.length ? resolvedMenus[0].id : seedMenus[0].id)
+        homeMenuId
       state.menus = resolvedMenus
       state.links = resolvedLinks
       state.settings = resolvedSettings
@@ -842,6 +861,7 @@ function loadInitialState() {
           :delete-icon="h(DeleteOutlined)"
           :disable-edit-ids="['links']"
           :collapsed="sidebarCollapsed"
+          :home-id="homeMenuId"
           @select="state.activeMenuId = $event"
           @edit="openEditMenu"
           @delete="deleteMenu"
@@ -923,6 +943,9 @@ function loadInitialState() {
           @drop="dropLink"
           @copy-title="copyTitle"
         />
+        <footer class="content-footer" aria-live="polite">
+          {{ motivationalQuotes[currentQuoteIndex] }}
+        </footer>
       </main>
 
       <LinkFormModal
