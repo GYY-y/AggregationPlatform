@@ -1,54 +1,71 @@
 # 聚合工作台（AggregationPlatform）
 
-一个基于 Vue 3 + Vite + Ant Design Vue 的链接聚合面板，支持菜单分组、拖拽排序、导入导出、本地偏好缓存等功能。
+一个基于 Vue 3、Vite 和 Ant Design Vue 的个人链接聚合工作台。它将常用网站、工具和资料集中到一个可搜索、可分组、可自定义的页面中。
 
-## 功能特点
-- 新增/编辑/删除菜单与链接，菜单名称必填且 1-4 个字。
-- 可选开关控制拖拽，开启后支持菜单与链接拖拽排序。
-- 链接卡片支持点击标题复制文本、展示标签与描述，标签自动分配高对比色。
-- 设置抽屉可切换主题、列数、紧凑模式、显示描述/菜单数量，并支持导入导出/清除缓存。
-- 本地缓存：状态、配置保存在浏览器 `localStorage`，支持一键恢复默认。
+## 功能
 
-## 解决的痛点
-- 常用链接散落在浏览器书签、聊天记录或文档里，难以快速找到：集中到单一面板，按菜单/标签分组，搜索即达。
-- 团队成员不熟悉链接路径：导出配置分享给同事，导入即可复用同一套入口。
-- 排序/分组调整频繁：开启拖拽后直接拖动菜单和链接即可调整顺序，随用随排。
-- 深夜/白天不同场景：支持主题切换与紧凑模式，适配暗光和多信息密度需求。
+- 菜单管理：新增、编辑、删除和拖拽排序菜单，并为菜单选择图标。
+- 链接管理：新增、编辑、删除和拖拽排序链接，支持描述、标签和所属菜单。
+- 快速操作：点击链接卡片打开地址；右键卡片可打开操作菜单；点击卡片头像或标题复制标题。
+- 搜索与筛选：按标题、描述和标签搜索，点击标签可快速筛选。
+- 侧边栏：支持展开/收起。收起时仅显示图标，悬停 Logo 会显示展开图标，点击后展开；收起状态会显示菜单名称 Tooltip。
+- 拖拽排序：在配置项中开启后，可以拖动菜单和链接调整顺序。
+- 主题与外观：支持明亮、暗色和跟随系统主题；支持自定义内容背景色，并可一键恢复默认色 `#fcfcfc`。
+- 布局设置：可调整卡片列数、紧凑模式、描述显示和菜单数量显示。
+- 配置管理：支持导出、导入和清除本地配置。
+- 本地持久化：菜单、链接、设置和侧边栏状态保存在浏览器 `localStorage` 中。
+- 页面页脚：内容区域底部会展示自动轮换的励志短句。
 
-## 预置友情链接
-- Skill 创作小说：预览 https://novelplatform-one.vercel.app/ ｜ GitHub https://github.com/GYY-y/novelPlatform
-- 春节小游戏：预览 https://minigame-delta-inky.vercel.app/ ｜ GitHub https://github.com/GYY-y/mini-game
-- 聚合工作台：预览 https://aggregation-platform.vercel.app/ ｜ GitHub https://github.com/GYY-y/AggregationPlatform
+## 技术栈
 
-## 目录结构（关键部分）
-```
+- Vue 3（`<script setup>`）
+- Vite
+- Ant Design Vue
+- Sass / SCSS
+
+## 目录结构
+
+```text
 src/
-  App.vue                # 主页面，负责状态与业务逻辑
-  assets/main.scss       # 全局样式
-  assets/images/altr.png # 左上角品牌 Logo
+  App.vue                    # 页面状态、主题变量与主要业务逻辑
+  assets/main.scss           # 全局布局、主题和组件样式
+  assets/images/             # 明亮/暗色 Logo 资源
   components/
-    MenuList.vue         # 菜单列表（拖拽、编辑/删除）
-    LinkGrid.vue         # 链接卡片网格（复制标题、拖拽）
-    LinkFormModal.vue    # 链接表单弹窗
-    MenuFormModal.vue    # 菜单表单弹窗
-    SettingsDrawer.vue   # 配置抽屉
-  composables/useTheme.js# 主题切换与变量注入
+    MenuList.vue             # 侧边栏菜单与折叠状态下的 Tooltip
+    LinkGrid.vue             # 链接卡片、右键菜单和复制交互
+    LinkFormModal.vue        # 链接表单
+    MenuFormModal.vue        # 菜单表单
+    SettingsDrawer.vue       # 主题、布局和背景色配置
+    ThemeProvider.vue        # Ant Design Vue 主题注入
+  composables/useTheme.js    # 主题模式与系统主题同步
 ```
 
 ## 本地开发
+
 ```bash
 npm install
 npm run dev
 ```
-在浏览器打开 Vite 提示的本地地址即可预览。
 
-## 构建
+然后打开 Vite 输出的本地地址。
+
+## 构建与预览
+
 ```bash
 npm run build
+npm run preview
 ```
-产物输出到 `dist/`。
 
-## 使用提示
-- 拖拽需先开启“允许拖拽”开关，默认关闭。
-- 导出会包含菜单/链接/设置等状态；导入时选择 JSON 文件即可恢复。
-- Logo 位置在左侧品牌区，如需替换可覆盖 `src/assets/images/altr.png`。 
+生产构建产物输出到 `dist/`。
+
+## 使用说明
+
+1. 点击侧边栏底部的 `+` 创建菜单。
+2. 点击右上角“新增链接”创建链接卡片。
+3. 在“配置项”中调整主题、列数、紧凑模式、内容背景色等设置。
+4. 开启“拖拽排序”后，可拖动菜单和链接调整顺序。
+5. 使用配置抽屉中的导出/导入功能备份或迁移数据。
+
+## 数据说明
+
+应用默认只在当前浏览器本地保存数据，不依赖账号或后端服务。清除缓存会恢复内置示例数据和默认设置；导入配置会覆盖当前菜单、链接和设置。

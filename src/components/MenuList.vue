@@ -124,6 +124,7 @@ const getCount = (id) => props.menuLinkCount[id] || 0
   text-align: left;
   line-height: 1.2;
   color: inherit;
+  transition: opacity 160ms ease, transform 220ms ease;
 }
 
 .menu-list--collapsed .menu-card {
