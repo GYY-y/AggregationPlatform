@@ -86,7 +86,7 @@ const resetContentBackground = () => {
       <a-form-item label="显示菜单数量">
         <a-checkbox v-model:checked="settings.showMenuCount" />
       </a-form-item>
-      <a-form-item label="背景样式">
+      <a-form-item label="背景样式" class="background-form-item">
         <a-tabs v-model:active-key="settings.backgroundMode" class="background-tabs">
           <a-tab-pane key="color" tab="内容背景色">
             <div class="color-setting">
@@ -147,6 +147,20 @@ const resetContentBackground = () => {
 
 .storage-warning-item {
   margin-top: -8px;
+}
+
+.background-form-item :deep(.ant-form-item-control) {
+  min-width: 0;
+}
+
+.background-form-item :deep(.ant-form-item-row) {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.background-form-item :deep(.ant-form-item-control-input-content),
+.background-form-item :deep(.background-tabs) {
+  width: 100%;
 }
 
 .color-setting input {
