@@ -32,6 +32,7 @@ defineExpose({ validate: () => linkFormRef.value?.validate() })
 
 <template>
   <a-modal
+    class="form-modal form-modal--link"
     :open="open"
     :title="title"
     :mask-closable="false"
@@ -55,6 +56,27 @@ defineExpose({ validate: () => linkFormRef.value?.validate() })
       <a-form-item label="链接" name="url">
         <a-input v-model:value="linkForm.url" placeholder="https://" />
       </a-form-item>
+      <a-form-item label="所属菜单" name="menuId">
+        <a-select
+          v-model:value="linkForm.menuId"
+          show-search
+          option-filter-prop="label"
+          placeholder="选择菜单"
+        >
+          <a-select-option v-for="menu in menus" :key="menu.id" :value="menu.id" :label="menu.name">
+            {{ menu.name }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item label="标签">
+        <a-select
+          v-model:value="linkForm.tags"
+          mode="multiple"
+          :show-arrow="true"
+          placeholder="选择标签"
+          :options="tagOptions.map((tag) => ({ label: tag, value: tag }))"
+        />
+      </a-form-item>
       <a-form-item label="描述" name="description">
         <a-textarea
           v-model:value="linkForm.description"
@@ -63,19 +85,6 @@ defineExpose({ validate: () => linkFormRef.value?.validate() })
           :maxlength="100"
           show-count
         />
-      </a-form-item>
-      <a-form-item label="标签">
-        <a-select
-          v-model:value="linkForm.tags"
-          mode="multiple"
-          placeholder="选择标签"
-          :options="tagOptions.map((tag) => ({ label: tag, value: tag }))"
-        />
-      </a-form-item>
-      <a-form-item label="所属菜单" name="menuId">
-        <a-select v-model:value="linkForm.menuId">
-          <a-select-option v-for="menu in menus" :key="menu.id" :value="menu.id">{{ menu.name }}</a-select-option>
-        </a-select>
       </a-form-item>
     </a-form>
   </a-modal>

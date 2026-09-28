@@ -52,25 +52,24 @@ const getCardStyle = (link) => {
 
 <template>
   <div class="card-grid" :class="{ 'card-grid--dense': dense }">
-    <a-card
-      v-for="link in links"
-      :key="link.id"
-      class="card card--list"
-      :class="denseClass"
-      :style="getCardStyle(link)"
-      :bordered="true"
-      :draggable="canDrag"
-      @dragstart="emit('drag-start', link.id)"
-      @dragend="emit('drag-end')"
-      @dragover.prevent
-      @drop.prevent="emit('drop', link.id)"
-    >
-      <a-dropdown :trigger="['contextmenu']">
+    <a-dropdown v-for="link in links" :key="link.id" :trigger="['contextmenu']">
+      <a-card
+        class="card card--list"
+        :class="denseClass"
+        :style="getCardStyle(link)"
+        :bordered="true"
+        :draggable="canDrag"
+        @click="emit('open', link.url)"
+        @dragstart="emit('drag-start', link.id)"
+        @dragend="emit('drag-end')"
+        @dragover.prevent
+        @drop.prevent="emit('drop', link.id)"
+      >
         <div class="card__row">
           <div class="card__avatar" @click.stop="emit('copy-title', link.title)">
             {{ getInitial(link.title) }}
           </div>
-          <div class="card__content" @click.stop="emit('open', link.url)">
+          <div class="card__content">
             <p class="card__title card__title--truncate" @click.stop="emit('copy-title', link.title)">
               {{ link.title }}
             </p>
@@ -79,24 +78,24 @@ const getCardStyle = (link) => {
             </a-tooltip>
           </div>
         </div>
-        <template #overlay>
-          <a-menu>
-            <a-menu-item @click="emit('open', link.url)">打开</a-menu-item>
-            <a-menu-item @click="emit('edit', link)">编辑</a-menu-item>
-            <a-menu-item class="menu-item--danger">
-              <a-popconfirm
-                title="确认删除此链接？"
-                ok-text="删除"
-                cancel-text="取消"
-                @confirm="emit('delete', link.id)"
-              >
-                <span>删除</span>
-              </a-popconfirm>
-            </a-menu-item>
-          </a-menu>
-        </template>
-      </a-dropdown>
-    </a-card>
+      </a-card>
+      <template #overlay>
+        <a-menu>
+          <a-menu-item @click="emit('open', link.url)">打开</a-menu-item>
+          <a-menu-item @click="emit('edit', link)">编辑</a-menu-item>
+          <a-menu-item class="menu-item--danger">
+            <a-popconfirm
+              title="确认删除此链接？"
+              ok-text="删除"
+              cancel-text="取消"
+              @confirm="emit('delete', link.id)"
+            >
+              <span>删除</span>
+            </a-popconfirm>
+          </a-menu-item>
+        </a-menu>
+      </template>
+    </a-dropdown>
   </div>
 </template>
 

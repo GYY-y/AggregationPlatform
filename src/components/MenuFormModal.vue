@@ -39,6 +39,7 @@ defineExpose({ validate: () => menuFormRef.value?.validate() })
 
 <template>
   <a-modal
+    class="form-modal form-modal--menu"
     :open="open"
     :title="title"
     :mask-closable="false"

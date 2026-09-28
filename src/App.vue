@@ -1,6 +1,6 @@
 <script setup>
 import { computed, h, onMounted, reactive, ref, watch } from 'vue'
-import { App as AntApp, Button, Input, Space, Switch, Tag, Tour } from 'ant-design-vue'
+import { App as AntApp, Button, Input, Space, Switch, Tag, Tooltip, Tour } from 'ant-design-vue'
 import {
   PlusOutlined,
   EditOutlined,
@@ -21,6 +21,8 @@ import {
   MessageOutlined,
   ThunderboltOutlined,
   SearchOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
 } from '@ant-design/icons-vue'
 import { useTheme } from './composables/useTheme'
 import MenuList from './components/MenuList.vue'
@@ -133,6 +135,7 @@ const seedSettings = {
   theme: 'system',
   showMenuCount: false,
   enableDrag: false,
+  contentBackground: '#fcfcfc',
 }
 
 const baseLight = {
@@ -178,9 +181,12 @@ const newLinkBtnRef = ref(null)
 const settingBtnRef = ref(null)
 const dragSwitchRef = ref(null)
 const tourOpen = ref(false)
+const sidebarCollapsed = ref(false)
+const sidebarLogoHovered = ref(false)
+const sidebarStorageKey = 'aggregation-platform-sidebar-collapsed'
 const formLayout = {
-  labelCol: { span: 7 },
-  wrapperCol: { span: 17 },
+  labelCol: { span: 5 },
+  wrapperCol: { span: 19 },
   labelAlign: 'right',
 }
 const linkRules = {
@@ -358,11 +364,17 @@ const themeVars = computed(() => {
     '--accent': accent,
     '--accent-2': accent2,
     '--bg': preset.background,
+    '--content-bg': state.settings.contentBackground || '#fcfcfc',
     '--surface': preset.surface,
     '--surface-alt': preset.surfaceAlt,
     '--line': preset.line,
     '--muted': preset.muted,
     '--text': preset.text,
+    '--sidebar-bg': state.settings.contentBackground || '#fcfcfc',
+    '--sidebar-hover': effectiveTheme.value === 'dark' ? '#212121' : '#ececec',
+    '--sidebar-active': effectiveTheme.value === 'dark' ? '#2f2f2f' : '#e5e5e5',
+    '--sidebar-text': effectiveTheme.value === 'dark' ? '#ececec' : '#2f2f2f',
+    '--sidebar-muted': effectiveTheme.value === 'dark' ? '#a1a1a1' : '#6b6b6b',
   }
 })
 
@@ -417,7 +429,21 @@ watch(
 
 onMounted(() => {
   loadInitialState()
+  sidebarCollapsed.value = localStorage.getItem(sidebarStorageKey) === 'true'
 })
+
+watch(sidebarCollapsed, (collapsed) => {
+  localStorage.setItem(sidebarStorageKey, String(collapsed))
+})
+
+function toggleSidebar() {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+}
+
+function expandSidebar() {
+  sidebarCollapsed.value = false
+  sidebarLogoHovered.value = false
+}
 
 function resetLinkForm(menuId = state.activeMenuId) {
   linkForm.title = ''
@@ -773,10 +799,35 @@ function loadInitialState() {
 </script>
 
 <template>
-  <div class="app-shell" :style="themeVars">
-      <aside class="sidebar sidebar--compact">
-        <div class="brand">
-          <img class="brand__logo" :src="brandLogo" alt="Altr Logo" />
+  <div class="app-shell" :class="{ 'app-shell--sidebar-collapsed': sidebarCollapsed }" :style="themeVars">
+      <aside class="sidebar sidebar--compact" :class="{ 'sidebar--collapsed': sidebarCollapsed }">
+        <div
+          class="brand"
+          :class="{ 'brand--collapsed': sidebarCollapsed }"
+          @mouseenter="sidebarCollapsed && (sidebarLogoHovered = true)"
+          @mouseleave="sidebarLogoHovered = false"
+        >
+          <img v-if="!sidebarCollapsed || !sidebarLogoHovered" class="brand__logo" :src="brandLogo" alt="Altr Logo" />
+          <Button
+            v-else
+            class="sidebar-toggle-btn sidebar-toggle-btn--expand"
+            shape="circle"
+            type="text"
+            size="middle"
+            :icon="h(MenuUnfoldOutlined)"
+            aria-label="展开侧边栏"
+            @click="expandSidebar"
+          />
+          <Button
+            v-if="!sidebarCollapsed"
+            class="sidebar-toggle-btn"
+            shape="circle"
+            type="text"
+            size="middle"
+            :icon="h(MenuFoldOutlined)"
+            aria-label="收起侧边栏"
+            @click="toggleSidebar"
+          />
         </div>
         <input ref="importInput" type="file" accept="application/json" class="hidden" @change="handleImport" />
         <MenuList
@@ -790,6 +841,7 @@ function loadInitialState() {
           :edit-icon="h(EditOutlined)"
           :delete-icon="h(DeleteOutlined)"
           :disable-edit-ids="['links']"
+          :collapsed="sidebarCollapsed"
           @select="state.activeMenuId = $event"
           @edit="openEditMenu"
           @delete="deleteMenu"
@@ -814,25 +866,26 @@ function loadInitialState() {
         <header class="header">
           <div>
             <h1>链接聚合</h1>
-            <p class="muted">固定常用、分组管理、随时导入导出配置。</p>
           </div>
-      <Space class="header__actions" wrap>
-        <Space size="middle">
-          <span class="muted">允许拖拽</span>
-          <Switch ref="dragSwitchRef" v-model:checked="state.settings.enableDrag" />
-        </Space>
-        <Button ref="newLinkBtnRef" type="primary" size="large" @click="openNewLink" :icon="h(PlusOutlined)">新增链接</Button>
-        <Button ref="settingBtnRef" size="large" @click="settingDrawerOpen = true" :icon="h(SettingOutlined)">配置项</Button>
-      </Space>
+          <Space class="header__actions" wrap>
+            <Tooltip title="开启后支持左侧菜单和右侧内容拖拽排序">
+              <Space size="small">
+                <span class="muted">拖拽排序</span>
+                <Switch ref="dragSwitchRef" v-model:checked="state.settings.enableDrag" />
+              </Space>
+            </Tooltip>
+            <Button ref="newLinkBtnRef" type="primary" size="middle" @click="openNewLink" :icon="h(PlusOutlined)">新增链接</Button>
+            <Button ref="settingBtnRef" size="middle" @click="settingDrawerOpen = true" :icon="h(SettingOutlined)">配置项</Button>
+          </Space>
         </header>
 
         <div class="toolbar">
           <Input
             v-model:value="state.search"
             allow-clear
-            size="large"
+            size="middle"
             class="search-input"
-            style="width: 280px"
+            style="width: 240px"
             placeholder="搜索标题、标签"
           >
             <template #prefix>

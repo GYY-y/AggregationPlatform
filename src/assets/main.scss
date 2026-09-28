@@ -36,24 +36,23 @@ textarea {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 96px 1fr;
+  grid-template-columns: 200px 1fr;
   min-height: 100vh;
 }
 
+.app-shell--sidebar-collapsed {
+  grid-template-columns: 52px 1fr;
+}
+
 .sidebar {
-  border-right: none;
-  padding: 16px 10px 18px;
-  background: color-mix(in srgb, var(--bg) 65%, transparent 35%);
-  color: var(--text);
+  border-right: 1px solid var(--line);
+  padding: 14px 12px 16px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.28) inset,
-    0 12px 30px rgba(0, 0, 0, 0.18);
+  gap: 10px;
 }
 
 .sidebar--compact {
@@ -62,10 +61,19 @@ textarea {
 
 .brand {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
   gap: 6px;
   margin-bottom: 10px;
+}
+
+.brand--collapsed {
+  width: 34px;
+  height: 34px;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .brand__dot {
@@ -83,6 +91,14 @@ textarea {
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
 }
 
+.sidebar-toggle-btn--expand {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  padding: 0;
+  margin: 0;
+}
+
 
 .sidebar__actions {
   margin-top: auto;
@@ -90,17 +106,27 @@ textarea {
   gap: 8px;
 }
 
+.sidebar-toggle-btn {
+  color: var(--sidebar-muted);
+}
+
+.sidebar-toggle-btn:hover,
+.sidebar-toggle-btn:focus-visible {
+  color: var(--sidebar-text);
+  background: var(--sidebar-hover);
+}
+
 .menu-add-btn {
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  background: var(--surface-alt);
-  color: var(--text);
+  background: transparent;
+  color: var(--sidebar-muted);
 }
 
 .menu-add-btn:hover {
-  background: color-mix(in srgb, var(--surface-alt) 80%, var(--accent) 20%);
-  color: var(--text);
+  background: var(--sidebar-hover);
+  color: var(--sidebar-text);
 }
 
 .menu-list {
@@ -126,25 +152,43 @@ textarea {
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 12px;
-  border: 1px solid transparent;
+  border-radius: 8px;
   background: transparent;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
   width: 100%;
+  min-height: 40px;
+  padding: 7px 0;
+  color: var(--sidebar-text);
+}
+
+.menu-item > .ant-dropdown-trigger,
+.menu-item > .menu-card {
+  width: 100%;
 }
 
 .menu-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--sidebar-hover);
 }
 
 .menu-item.active {
-  background: rgba(255, 255, 255, 0.16);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  position: relative;
+  background: transparent;
+  color: var(--accent);
+  box-shadow: none;
+}
+
+.menu-item.active .menu-icon {
+  color: var(--accent);
+  background: transparent;
+}
+
+.menu-item--collapsed {
+  width: 48px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  padding-left: 7px;
+  padding-right: 7px;
 }
 
 
@@ -158,19 +202,20 @@ textarea {
 
 .content {
   padding: 32px;
-  background: var(--bg);
+  background: var(--content-bg);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 24px;
 }
 
 .header h1 {
-  margin: 6px 0 8px;
+  margin: 0;
   font-size: 28px;
+  line-height: 32px;
 }
 
 .header__actions {
@@ -543,6 +588,77 @@ textarea {
 
 .accent-theme .ant-btn-primary {
   color: #fff;
+}
+
+.form-modal .ant-modal-body {
+  padding-top: 10px;
+}
+
+.form-modal .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.form-modal .ant-form-item-label {
+  overflow: visible;
+}
+
+.form-modal .ant-form-item-label > label {
+  white-space: nowrap;
+}
+
+.form-modal .ant-form-item:last-child {
+  margin-bottom: 4px;
+}
+
+.form-modal .ant-select-arrow {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.form-modal .ant-input,
+.form-modal .ant-input-affix-wrapper,
+.form-modal .ant-select-selector {
+  min-height: 32px;
+}
+
+.form-modal textarea.ant-input {
+  min-height: 64px;
+}
+
+.form-modal--link {
+  width: min(560px, calc(100vw - 32px)) !important;
+}
+
+.form-modal--menu {
+  width: min(440px, calc(100vw - 32px)) !important;
+}
+
+.sidebar .menu-add-btn {
+  background: transparent;
+  border-color: transparent;
+  color: var(--sidebar-muted);
+  box-shadow: none;
+}
+
+.sidebar .menu-add-btn:hover,
+.sidebar .menu-add-btn:focus-visible {
+  background: var(--sidebar-hover);
+  border-color: transparent;
+  color: var(--sidebar-text);
+  box-shadow: none;
+}
+
+.sidebar .sidebar-toggle-btn {
+  background: transparent;
+  border-color: transparent;
+  color: var(--sidebar-muted);
+}
+
+.sidebar .sidebar-toggle-btn:hover,
+.sidebar .sidebar-toggle-btn:focus-visible {
+  background: var(--sidebar-hover);
+  border-color: transparent;
+  color: var(--sidebar-text);
 }
 
 .toast {
