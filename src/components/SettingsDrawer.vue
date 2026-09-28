@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import { ReloadOutlined } from '@ant-design/icons-vue'
 
 const defaultContentBackground = '#fcfcfc'
@@ -11,6 +12,11 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:open', 'update:themeValue', 'export', 'import', 'clear'])
+const backgroundInput = ref(null)
+
+const triggerBackgroundUpload = () => {
+  backgroundInput.value?.click()
+}
 
 const handleBackgroundUpload = (event) => {
   const file = event.target.files?.[0]
@@ -27,6 +33,7 @@ const handleBackgroundUpload = (event) => {
       canvas.height = Math.max(1, Math.round(image.naturalHeight * scale))
       canvas.getContext('2d')?.drawImage(image, 0, 0, canvas.width, canvas.height)
       props.settings.backgroundImage = canvas.toDataURL('image/jpeg', 0.58)
+      props.settings.backgroundMode = 'image'
     }
     image.src = reader.result
   }
@@ -36,6 +43,7 @@ const handleBackgroundUpload = (event) => {
 
 const clearBackground = () => {
   props.settings.backgroundImage = ''
+  props.settings.backgroundMode = 'color'
 }
 
 const resetContentBackground = () => {
@@ -78,39 +86,33 @@ const resetContentBackground = () => {
       <a-form-item label="显示菜单数量">
         <a-checkbox v-model:checked="settings.showMenuCount" />
       </a-form-item>
-      <a-form-item v-if="!settings.backgroundImage" label="内容背景色">
-        <div class="color-setting">
-          <input v-model="settings.contentBackground" type="color" aria-label="选择内容背景色" />
-          <span>{{ settings.contentBackground }}</span>
-          <a-tooltip title="恢复默认背景色">
-            <a-button
-              type="text"
-              size="small"
-              aria-label="恢复默认背景色"
-              @click="resetContentBackground"
-            >
-              <ReloadOutlined />
-            </a-button>
-          </a-tooltip>
-        </div>
-      </a-form-item>
-      <a-form-item label="页面背景图">
-        <div class="background-setting">
-          <input
-            type="file"
-            accept="image/*"
-            aria-label="上传页面背景图"
-            @change="handleBackgroundUpload"
-          />
-          <a-button v-if="settings.backgroundImage" size="small" @click="clearBackground">移除背景图</a-button>
-          <span v-else class="background-setting__hint">未设置</span>
-        </div>
-      </a-form-item>
-      <a-form-item v-if="settings.backgroundImage" label="背景模糊度">
-        <div class="slider-setting">
-          <a-slider v-model:value="settings.backgroundBlur" :min="0" :max="20" :step="1" />
-          <span>{{ settings.backgroundBlur }}px</span>
-        </div>
+      <a-form-item label="背景样式">
+        <a-tabs v-model:active-key="settings.backgroundMode" class="background-tabs">
+          <a-tab-pane key="color" tab="内容背景色">
+            <div class="color-setting">
+              <input v-model="settings.contentBackground" type="color" aria-label="选择内容背景色" />
+              <span>{{ settings.contentBackground }}</span>
+              <a-tooltip title="恢复默认背景色">
+                <a-button type="text" size="small" aria-label="恢复默认背景色" @click="resetContentBackground">
+                  <ReloadOutlined />
+                </a-button>
+              </a-tooltip>
+            </div>
+          </a-tab-pane>
+          <a-tab-pane key="image" tab="页面背景图">
+            <div class="background-setting">
+              <input ref="backgroundInput" class="background-file-input" type="file" accept="image/*" aria-label="上传页面背景图" @change="handleBackgroundUpload" />
+              <a-button size="middle" @click="triggerBackgroundUpload">上传图片</a-button>
+              <a-button v-if="settings.backgroundImage" size="middle" @click="clearBackground">移除背景图</a-button>
+              <span v-else class="background-setting__hint">未设置</span>
+            </div>
+            <div v-if="settings.backgroundImage" class="slider-setting">
+              <span class="slider-setting__label">模糊度</span>
+              <a-slider v-model:value="settings.backgroundBlur" :min="0" :max="20" :step="1" />
+              <span>{{ settings.backgroundBlur }}</span>
+            </div>
+          </a-tab-pane>
+        </a-tabs>
       </a-form-item>
       <a-form-item label="配置">
         <a-space>
@@ -180,9 +182,12 @@ const resetContentBackground = () => {
 }
 
 .background-setting input {
-  max-width: 190px;
   color: var(--muted);
   font-size: 12px;
+}
+
+.background-setting .background-file-input {
+  display: none;
 }
 
 .background-setting__hint {
@@ -194,6 +199,12 @@ const resetContentBackground = () => {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-top: 14px;
+}
+
+.slider-setting__label {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .slider-setting :deep(.ant-slider) {

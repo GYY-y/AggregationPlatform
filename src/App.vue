@@ -89,8 +89,9 @@ const seedSettings = {
   showMenuCount: false,
   enableDrag: false,
   contentBackground: '#fcfcfc',
+  backgroundMode: 'color',
   backgroundImage: '',
-  backgroundBlur: 0,
+  backgroundBlur: 6,
 }
 
 const baseLight = {
@@ -378,6 +379,7 @@ function getTagStyle(tag) {
 const denseClass = computed(() => (state.settings.dense ? 'card--dense' : ''))
 const canDrag = computed(() => state.settings.enableDrag)
 const isAboutPage = computed(() => state.activeMenuId === aboutMenuId)
+const usePageBackground = computed(() => state.settings.backgroundMode === 'image' && Boolean(state.settings.backgroundImage))
 const contentBackground = computed(() => {
   const configured = state.settings.contentBackground || '#fcfcfc'
   const isDefault = configured.toLowerCase() === '#fcfcfc'
@@ -393,19 +395,19 @@ const themeVars = computed(() => {
     '--accent-2': accent2,
     '--bg': preset.background,
     '--content-bg': contentBackground.value,
-    '--content-bg-layer': state.settings.backgroundImage ? 'transparent' : contentBackground.value,
+    '--content-bg-layer': usePageBackground.value ? 'transparent' : contentBackground.value,
     '--surface': preset.surface,
     '--surface-alt': preset.surfaceAlt,
     '--line': preset.line,
     '--muted': preset.muted,
     '--text': preset.text,
     '--sidebar-bg': contentBackground.value,
-    '--sidebar-bg-layer': state.settings.backgroundImage ? 'transparent' : contentBackground.value,
+    '--sidebar-bg-layer': usePageBackground.value ? 'transparent' : contentBackground.value,
     '--sidebar-hover': effectiveTheme.value === 'dark' ? '#212121' : '#ececec',
     '--sidebar-active': effectiveTheme.value === 'dark' ? '#2f2f2f' : '#e5e5e5',
     '--sidebar-text': effectiveTheme.value === 'dark' ? '#ececec' : '#2f2f2f',
     '--sidebar-muted': effectiveTheme.value === 'dark' ? '#a1a1a1' : '#6b6b6b',
-    '--page-bg-image': state.settings.backgroundImage ? `url("${state.settings.backgroundImage}")` : 'none',
+    '--page-bg-image': usePageBackground.value ? `url("${state.settings.backgroundImage}")` : 'none',
     '--page-bg-blur': `${state.settings.backgroundBlur || 0}px`,
   }
 })
@@ -823,6 +825,9 @@ function loadInitialState() {
       const resolvedMenus = normalizeMenus(parsed.menus?.length ? parsed.menus : [...seedMenus])
       const resolvedLinks = (parsed.links?.length ? parsed.links : [...seedLinks]).filter((link) => link.menuId !== 'links')
       const resolvedSettings = { ...seedSettings, ...(parsed.settings || {}) }
+      if (!parsed.settings?.backgroundMode && parsed.settings?.backgroundImage) {
+        resolvedSettings.backgroundMode = 'image'
+      }
       const validTheme = ['light', 'dark', 'system'].includes(resolvedSettings.theme)
         ? resolvedSettings.theme
         : 'system'
